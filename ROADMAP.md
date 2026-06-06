@@ -26,8 +26,8 @@ Objectif : parcourir et chercher le catalogue TMDB depuis une page user.
 - ☑ `CatalogController` : `Trending`, `Search`, `Details/{type}/{id}` (auth, langue, 400/404/503) + tests.
 - ☑ Champ clé API TMDB dans la page de config admin.
 - ☑ Assets page user `catalog` (HTML/JS/CSS) + i18n en/fr, servis par `WebController` (testé).
-- ☐ **Enregistrement Plugin Pages** (`IPluginPagesManager.RegisterPluginPage`) — à câbler et **vérifier sur instance live**.
-- ☐ **Vérif** : la page user liste des résultats TMDB (browse + recherche) dans une instance réelle.
+- ☑ **Enregistrement Plugin Pages** câblé (`PluginPageRegistrationService` via `IPluginPagesManager`, tolérant à l'absence) + tests JS (`node:test`).
+- ☐ **Vérif (instance live)** : installer Plugin Pages + File Transformation, vérifier que la page « Jelly Crowd » apparaît et liste les résultats TMDB (browse + recherche). Ajuster `PageUrl` si nécessaire.
 
 ## M2 — Requêtes (file d'attente admin)  ☐
 

@@ -22,6 +22,10 @@
     <PackageReference Include="Jellyfin.Model" Version="10.11.10">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
+    <!-- Provided at runtime by the installed Plugin Pages plugin (compile-time reference only). -->
+    <PackageReference Include="Jellyfin.Plugin.PluginPages" Version="1.2.3">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

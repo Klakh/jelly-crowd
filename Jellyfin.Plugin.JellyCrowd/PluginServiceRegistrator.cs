@@ -14,5 +14,6 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
   public void RegisterServices(IServiceCollection serviceCollection, IServerApplicationHost applicationHost)
   {
     serviceCollection.AddSingleton<ITmdbClient, TmdbClient>();
+    serviceCollection.AddHostedService<PluginPageRegistrationService>();
   }
 }

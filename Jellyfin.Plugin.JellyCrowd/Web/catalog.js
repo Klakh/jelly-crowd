@@ -9,6 +9,7 @@
 
   var SUPPORTED_LANGS = ['en', 'fr'];
   var POSTER_BASE = 'https://image.tmdb.org/t/p/w342';
+  var lib = window.JellyCrowdLib;
   var strings = {};
 
   // Full locale (e.g. "fr-FR") sent to TMDB; the 2-letter code picks the string catalog.
@@ -17,8 +18,7 @@
   }
 
   function shortLang() {
-    var code = fullLocale().slice(0, 2).toLowerCase();
-    return SUPPORTED_LANGS.indexOf(code) >= 0 ? code : 'en';
+    return lib.pickLang(fullLocale(), SUPPORTED_LANGS);
   }
 
   function t(key) {
@@ -58,10 +58,6 @@
       .then(function (loaded) { strings = loaded || {}; });
   }
 
-  function yearOf(item) {
-    return item.ReleaseDate ? String(item.ReleaseDate).slice(0, 4) : '';
-  }
-
   function renderCard(item) {
     var card = document.createElement('div');
     card.className = 'jellycrowd-card';
@@ -88,8 +84,7 @@
 
     var title = document.createElement('div');
     title.className = 'jellycrowd-card-title';
-    var year = yearOf(item);
-    title.textContent = year ? (item.Title + ' (' + year + ')') : item.Title;
+    title.textContent = lib.formatTitle(item);
     card.appendChild(title);
 
     return card;
@@ -119,9 +114,8 @@
   }
 
   function showError(error) {
-    var key = (error && error.status === 503) ? 'error_not_configured' : 'error_generic';
     document.getElementById('jcGrid').innerHTML = '';
-    setMessage(t(key));
+    setMessage(t(lib.errorKey(error && error.status)));
   }
 
   function load(path, sectionTitleKey) {

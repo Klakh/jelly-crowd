@@ -112,8 +112,12 @@ Concrètement, on n'ajoute rien sans couverture :
 - Un PR qui ajoute du code sans test associé est considéré **incomplet**.
 - La CI (`.github/workflows/build.yml`) lance `dotnet test` ; un test rouge **bloque** le merge.
 
-Le projet de tests vit dans `Jellyfin.Plugin.JellyCrowd.Tests/` (xUnit). Il référence les assemblies
+Le projet de tests .NET vit dans `Jellyfin.Plugin.JellyCrowd.Tests/` (xUnit). Il référence les assemblies
 Jellyfin **sans** `ExcludeAssets` pour disposer du runtime à l'exécution.
+
+**Tests JS** : la logique front pure est isolée dans `Web/*.lib.js` (wrapper UMD : global navigateur +
+module CommonJS) et testée via `node --test tests/js/*.test.js` (sans dépendance). La CI lance ces deux
+suites (.NET + JS). Tout nouveau bouton/interaction expose sa logique dans un `*.lib.js` testé.
 
 ## Versionning automatique & CI/CD
 

@@ -36,6 +36,11 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Determine next version
         id: bump
         env:
@@ -79,6 +84,7 @@ jobs:
           dotnet restore
           dotnet build --configuration Release --no-restore
           dotnet test --configuration Release --no-build --verbosity normal
+          node --test tests/js/*.test.js
 
       - name: Package plugin
         run: |
