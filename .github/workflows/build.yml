@@ -1,0 +1,38 @@
+name: Build Plugin
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build (Release)
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Package plugin
+        run: |
+          mkdir -p artifacts
+          cp Jellyfin.Plugin.JellyCrowd/bin/Release/net9.0/Jellyfin.Plugin.JellyCrowd.dll artifacts/
+          cd artifacts && zip jelly-crowd.zip Jellyfin.Plugin.JellyCrowd.dll
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: jelly-crowd-plugin
+          path: artifacts/jelly-crowd.zip
