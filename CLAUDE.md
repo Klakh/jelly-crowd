@@ -70,11 +70,32 @@ Pré-requis runtime côté Jellyfin pour les pages user : installer **Plugin Pag
 
 ## Conventions
 
+- **Tout le code et les commentaires en anglais** (identifiants, commentaires, docs XML, messages de log,
+  noms de tests). Le français est réservé à la doc projet (`CLAUDE.md`, `ROADMAP.md`, `README.md`) et aux
+  chaînes traduites destinées aux utilisateurs (cf. i18n).
+- **Indentation : 2 espaces**, pour tous les fichiers (C#, HTML, JS, YAML, XML/csproj). Imposé par `.editorconfig`
+  (`indent_size = 2`).
 - Namespace racine : `Jellyfin.Plugin.JellyCrowd`.
 - Style imposé par `.editorconfig` + `jellyfin.ruleset` (StyleCop) ; `TreatWarningsAsErrors=true`.
 - En-tête de licence GPL-3.0 si requis ; documentation XML sur les membres publics.
 - DTOs dans `Models/` ; pas de logique métier dans les contrôleurs (déléguer aux `Services/`).
 - GUID du plugin : `a1994160-4ea2-4d81-bd3c-ffe825700d98` (ne pas changer).
+
+## Localisation (i18n) — suivre la langue de Jellyfin
+
+**Le plugin doit afficher sa langue en fonction de la langue de Jellyfin**, pas une langue figée.
+
+- Les chaînes destinées à l'utilisateur ne sont **jamais en dur** dans le code/HTML : elles vivent dans des
+  catalogues de traduction par langue (`Web/strings/<lang>.json`, ex. `en.json`, `fr.json`).
+- **Côté pages user (Plugin Pages)** : détecter la langue active de l'utilisateur Jellyfin (préférence utilisateur
+  / locale du client web, fallback `navigator.language` puis `en`) et charger le catalogue correspondant ;
+  fallback sur `en` pour toute clé manquante.
+- **Côté serveur** (messages d'API/erreurs visibles par l'utilisateur) : prévoir aussi des chaînes localisables ;
+  `en` par défaut.
+- Langues de base : **en** (défaut/fallback) et **fr**. Ajouter une langue = déposer un nouveau fichier de
+  catalogue, sans toucher au code.
+- Toute nouvelle chaîne visible par l'utilisateur doit être ajoutée au moins à `en.json` (et idéalement `fr.json`)
+  dans la même PR.
 
 ## Règle de tests (NON NÉGOCIABLE)
 

@@ -1,102 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>Jelly Crowd</title>
+  <meta charset="utf-8">
+  <title>Jelly Crowd</title>
 </head>
 <body>
-    <div id="JellyCrowdConfigPage" data-role="page" class="page type-interior pluginConfigurationPage"
-         data-require="emby-input,emby-button,emby-select,emby-checkbox">
-        <div data-role="content">
-            <div class="content-primary">
-                <form id="JellyCrowdConfigForm">
-                    <div class="verticalSection verticalSection-extrabottompadding">
-                        <h2 class="sectionTitle">Jelly Crowd</h2>
-                        <p class="fieldDescription">
-                            Catalogue de découverte TMDB, requêtes utilisateur (file d'attente admin) et quotas
-                            disque par utilisateur. Cette page configure le plugin ; les pages utilisateur sont
-                            servies via Plugin Pages.
-                        </p>
-                    </div>
+  <div id="JellyCrowdConfigPage" data-role="page" class="page type-interior pluginConfigurationPage"
+       data-require="emby-input,emby-button,emby-select,emby-checkbox">
+    <div data-role="content">
+      <div class="content-primary">
+        <form id="JellyCrowdConfigForm">
+          <div class="verticalSection verticalSection-extrabottompadding">
+            <h2 class="sectionTitle">Jelly Crowd</h2>
+            <p class="fieldDescription">
+              TMDB discovery catalog, user requests (admin approval queue) and per-user disk quotas.
+              This page configures the plugin; user-facing pages are served through Plugin Pages.
+            </p>
+          </div>
 
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="TmdbApiKey">Clé API TMDB</label>
-                        <input id="TmdbApiKey" name="TmdbApiKey" type="text" is="emby-input" />
-                        <div class="fieldDescription">Clé API v3 TMDB utilisée pour alimenter le catalogue de découverte.</div>
-                    </div>
+          <div class="inputContainer">
+            <label class="inputLabel inputLabelUnfocused" for="TmdbApiKey">TMDB API key</label>
+            <input id="TmdbApiKey" name="TmdbApiKey" type="text" is="emby-input" />
+            <div class="fieldDescription">TMDB v3 API key used to power the discovery catalog.</div>
+          </div>
 
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="DefaultUserQuotaGiB">Quota par défaut (Gio)</label>
-                        <input id="DefaultUserQuotaGiB" name="DefaultUserQuotaGiB" type="number" is="emby-input" min="0" step="1" />
-                        <div class="fieldDescription">Quota disque par défaut par utilisateur, en Gio. 0 = illimité.</div>
-                    </div>
+          <div class="inputContainer">
+            <label class="inputLabel inputLabelUnfocused" for="DefaultUserQuotaGiB">Default quota (GiB)</label>
+            <input id="DefaultUserQuotaGiB" name="DefaultUserQuotaGiB" type="number" is="emby-input" min="0" step="1" />
+            <div class="fieldDescription">Default per-user disk quota, in GiB. 0 means unlimited.</div>
+          </div>
 
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="RequireApproval" name="RequireApproval" type="checkbox" is="emby-checkbox" />
-                            <span>Exiger l'approbation admin des requêtes</span>
-                        </label>
-                        <div class="fieldDescription">Si activé, les requêtes restent en attente jusqu'à validation par un administrateur.</div>
-                    </div>
+          <div class="checkboxContainer checkboxContainer-withDescription">
+            <label class="emby-checkbox-label">
+              <input id="RequireApproval" name="RequireApproval" type="checkbox" is="emby-checkbox" />
+              <span>Require admin approval for requests</span>
+            </label>
+            <div class="fieldDescription">When enabled, requests stay pending until an administrator approves them.</div>
+          </div>
 
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="EstimatedMovieSizeGiB">Taille estimée d'un film (Gio)</label>
-                        <input id="EstimatedMovieSizeGiB" name="EstimatedMovieSizeGiB" type="number" is="emby-input" min="0" step="0.5" />
-                        <div class="fieldDescription">Sert au pré-contrôle de quota avant que la taille réelle soit connue.</div>
-                    </div>
+          <div class="inputContainer">
+            <label class="inputLabel inputLabelUnfocused" for="EstimatedMovieSizeGiB">Estimated movie size (GiB)</label>
+            <input id="EstimatedMovieSizeGiB" name="EstimatedMovieSizeGiB" type="number" is="emby-input" min="0" step="0.5" />
+            <div class="fieldDescription">Used for quota pre-checks before the real size is known.</div>
+          </div>
 
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="EstimatedEpisodeSizeGiB">Taille estimée d'un épisode (Gio)</label>
-                        <input id="EstimatedEpisodeSizeGiB" name="EstimatedEpisodeSizeGiB" type="number" is="emby-input" min="0" step="0.5" />
-                        <div class="fieldDescription">Sert au pré-contrôle de quota pour les séries.</div>
-                    </div>
+          <div class="inputContainer">
+            <label class="inputLabel inputLabelUnfocused" for="EstimatedEpisodeSizeGiB">Estimated episode size (GiB)</label>
+            <input id="EstimatedEpisodeSizeGiB" name="EstimatedEpisodeSizeGiB" type="number" is="emby-input" min="0" step="0.5" />
+            <div class="fieldDescription">Used for quota pre-checks on series.</div>
+          </div>
 
-                    <div>
-                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
-                            <span>Enregistrer</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <script type="text/javascript">
-            var JellyCrowdConfig = {
-                pluginUniqueId: 'a1994160-4ea2-4d81-bd3c-ffe825700d98',
-                bytesPerGiB: 1024 * 1024 * 1024
-            };
-
-            document.querySelector('#JellyCrowdConfigPage')
-                .addEventListener('pageshow', function () {
-                    Dashboard.showLoadingMsg();
-                    ApiClient.getPluginConfiguration(JellyCrowdConfig.pluginUniqueId).then(function (config) {
-                        var gib = JellyCrowdConfig.bytesPerGiB;
-                        document.querySelector('#TmdbApiKey').value = config.TmdbApiKey || '';
-                        document.querySelector('#DefaultUserQuotaGiB').value = (config.DefaultUserQuotaBytes || 0) / gib;
-                        document.querySelector('#RequireApproval').checked = !!config.RequireApproval;
-                        document.querySelector('#EstimatedMovieSizeGiB').value = (config.EstimatedMovieSizeBytes || 0) / gib;
-                        document.querySelector('#EstimatedEpisodeSizeGiB').value = (config.EstimatedEpisodeSizeBytes || 0) / gib;
-                        Dashboard.hideLoadingMsg();
-                    });
-                });
-
-            document.querySelector('#JellyCrowdConfigForm')
-                .addEventListener('submit', function (e) {
-                    Dashboard.showLoadingMsg();
-                    ApiClient.getPluginConfiguration(JellyCrowdConfig.pluginUniqueId).then(function (config) {
-                        var gib = JellyCrowdConfig.bytesPerGiB;
-                        config.TmdbApiKey = document.querySelector('#TmdbApiKey').value;
-                        config.DefaultUserQuotaBytes = Math.round(parseFloat(document.querySelector('#DefaultUserQuotaGiB').value || '0') * gib);
-                        config.RequireApproval = document.querySelector('#RequireApproval').checked;
-                        config.EstimatedMovieSizeBytes = Math.round(parseFloat(document.querySelector('#EstimatedMovieSizeGiB').value || '0') * gib);
-                        config.EstimatedEpisodeSizeBytes = Math.round(parseFloat(document.querySelector('#EstimatedEpisodeSizeGiB').value || '0') * gib);
-                        ApiClient.updatePluginConfiguration(JellyCrowdConfig.pluginUniqueId, config).then(function (result) {
-                            Dashboard.processPluginConfigurationUpdateResult(result);
-                        });
-                    });
-                    e.preventDefault();
-                    return false;
-                });
-        </script>
+          <div>
+            <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+              <span>Save</span>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
+    <script type="text/javascript">
+      var JellyCrowdConfig = {
+        pluginUniqueId: 'a1994160-4ea2-4d81-bd3c-ffe825700d98',
+        bytesPerGiB: 1024 * 1024 * 1024
+      };
+
+      document.querySelector('#JellyCrowdConfigPage')
+        .addEventListener('pageshow', function () {
+          Dashboard.showLoadingMsg();
+          ApiClient.getPluginConfiguration(JellyCrowdConfig.pluginUniqueId).then(function (config) {
+            var gib = JellyCrowdConfig.bytesPerGiB;
+            document.querySelector('#TmdbApiKey').value = config.TmdbApiKey || '';
+            document.querySelector('#DefaultUserQuotaGiB').value = (config.DefaultUserQuotaBytes || 0) / gib;
+            document.querySelector('#RequireApproval').checked = !!config.RequireApproval;
+            document.querySelector('#EstimatedMovieSizeGiB').value = (config.EstimatedMovieSizeBytes || 0) / gib;
+            document.querySelector('#EstimatedEpisodeSizeGiB').value = (config.EstimatedEpisodeSizeBytes || 0) / gib;
+            Dashboard.hideLoadingMsg();
+          });
+        });
+
+      document.querySelector('#JellyCrowdConfigForm')
+        .addEventListener('submit', function (e) {
+          Dashboard.showLoadingMsg();
+          ApiClient.getPluginConfiguration(JellyCrowdConfig.pluginUniqueId).then(function (config) {
+            var gib = JellyCrowdConfig.bytesPerGiB;
+            config.TmdbApiKey = document.querySelector('#TmdbApiKey').value;
+            config.DefaultUserQuotaBytes = Math.round(parseFloat(document.querySelector('#DefaultUserQuotaGiB').value || '0') * gib);
+            config.RequireApproval = document.querySelector('#RequireApproval').checked;
+            config.EstimatedMovieSizeBytes = Math.round(parseFloat(document.querySelector('#EstimatedMovieSizeGiB').value || '0') * gib);
+            config.EstimatedEpisodeSizeBytes = Math.round(parseFloat(document.querySelector('#EstimatedEpisodeSizeGiB').value || '0') * gib);
+            ApiClient.updatePluginConfiguration(JellyCrowdConfig.pluginUniqueId, config).then(function (result) {
+              Dashboard.processPluginConfigurationUpdateResult(result);
+            });
+          });
+          e.preventDefault();
+          return false;
+        });
+    </script>
+  </div>
 </body>
 </html>
