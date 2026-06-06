@@ -18,15 +18,16 @@ Objectif : un plugin vide qui **compile et se charge** dans Jellyfin 10.11, avec
 - ☐ CI GitHub : build `Release` + package `.zip` du plugin.
 - ☐ **Vérif** : `dotnet build -c Release` OK ; dll chargée dans *Dashboard → Plugins*, page config s'ouvre.
 
-## M1 — Catalogue TMDB  ☐
+## M1 — Catalogue TMDB  ◐
 
 Objectif : parcourir et chercher le catalogue TMDB depuis une page user.
 
-- ☐ `TmdbClient` (HttpClient, clé API depuis la config).
-- ☐ `CatalogController` : endpoints `discover` (tendances/populaires), `search`, `details/{type}/{id}`.
-- ☐ Champ clé API TMDB dans la page de config admin + validation.
-- ☐ Page user `catalog` (Plugin Pages) : grille d'affiches, recherche, fiche détail.
-- ☐ **Vérif** : la page user liste des résultats TMDB et affiche une fiche.
+- ☑ `TmdbClient`/`ITmdbClient` (HttpClient, clé API depuis la config) + `TmdbResponseParser` (testé).
+- ☑ `CatalogController` : `Trending`, `Search`, `Details/{type}/{id}` (auth, langue, 400/404/503) + tests.
+- ☑ Champ clé API TMDB dans la page de config admin.
+- ☑ Assets page user `catalog` (HTML/JS/CSS) + i18n en/fr, servis par `WebController` (testé).
+- ☐ **Enregistrement Plugin Pages** (`IPluginPagesManager.RegisterPluginPage`) — à câbler et **vérifier sur instance live**.
+- ☐ **Vérif** : la page user liste des résultats TMDB (browse + recherche) dans une instance réelle.
 
 ## M2 — Requêtes (file d'attente admin)  ☐
 

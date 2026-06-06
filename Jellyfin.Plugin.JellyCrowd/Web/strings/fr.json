@@ -1,0 +1,13 @@
+{
+  "app_title": "Jelly Crowd",
+  "search_placeholder": "Rechercher des films et séries…",
+  "search_button": "Rechercher",
+  "trending_title": "Tendances de la semaine",
+  "results_title": "Résultats",
+  "request_button": "Demander",
+  "available_badge": "Disponible",
+  "loading": "Chargement…",
+  "no_results": "Aucun résultat.",
+  "error_not_configured": "TMDB n'est pas configuré. Demandez à un administrateur de renseigner la clé API dans les réglages du plugin Jelly Crowd.",
+  "error_generic": "Une erreur est survenue. Veuillez réessayer."
+}

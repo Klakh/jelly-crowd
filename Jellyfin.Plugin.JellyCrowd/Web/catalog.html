@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Jelly Crowd</title>
+  <link rel="stylesheet" href="jellycrowd.css">
+</head>
+<body>
+  <div id="jellyCrowdApp" class="jellycrowd">
+    <header class="jellycrowd-header">
+      <h1 id="jcTitle" class="jellycrowd-title">Jelly Crowd</h1>
+      <form id="jcSearchForm" class="jellycrowd-search">
+        <input id="jcSearchInput" type="search" autocomplete="off" />
+        <button id="jcSearchButton" type="submit"></button>
+      </form>
+    </header>
+
+    <section class="jellycrowd-section">
+      <h2 id="jcSectionTitle" class="jellycrowd-section-title"></h2>
+      <p id="jcMessage" class="jellycrowd-message" hidden></p>
+      <div id="jcGrid" class="jellycrowd-grid" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <script src="catalog.js"></script>
+</body>
+</html>

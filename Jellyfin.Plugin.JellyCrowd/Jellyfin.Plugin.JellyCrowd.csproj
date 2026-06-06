@@ -35,4 +35,9 @@
     <EmbeddedResource Include="Configuration\configPage.html" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Web\**\*" />
+    <EmbeddedResource Include="Web\**\*" />
+  </ItemGroup>
+
 </Project>

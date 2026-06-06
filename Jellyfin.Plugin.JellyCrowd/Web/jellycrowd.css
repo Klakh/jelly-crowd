@@ -1,0 +1,88 @@
+.jellycrowd {
+  padding: 1.5em;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.jellycrowd-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  margin-bottom: 1.5em;
+}
+
+.jellycrowd-title {
+  margin: 0;
+}
+
+.jellycrowd-search {
+  display: flex;
+  gap: 0.5em;
+}
+
+.jellycrowd-search input {
+  min-width: 16em;
+  padding: 0.5em 0.75em;
+  border-radius: 0.3em;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+}
+
+.jellycrowd-search button {
+  padding: 0.5em 1em;
+  border-radius: 0.3em;
+  border: none;
+  cursor: pointer;
+}
+
+.jellycrowd-section-title {
+  margin: 0 0 0.75em;
+}
+
+.jellycrowd-message {
+  opacity: 0.75;
+}
+
+.jellycrowd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1em;
+}
+
+.jellycrowd-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.jellycrowd-poster {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 0.4em;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.jellycrowd-poster-empty {
+  display: block;
+}
+
+.jellycrowd-badge {
+  position: absolute;
+  top: 0.5em;
+  left: 0.5em;
+  padding: 0.15em 0.5em;
+  font-size: 0.75em;
+  border-radius: 0.3em;
+  background: #2e7d32;
+  color: #fff;
+}
+
+.jellycrowd-card-title {
+  margin-top: 0.5em;
+  font-size: 0.9em;
+  line-height: 1.3;
+}

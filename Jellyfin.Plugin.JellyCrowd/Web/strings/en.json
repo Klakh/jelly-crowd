@@ -1,0 +1,13 @@
+{
+  "app_title": "Jelly Crowd",
+  "search_placeholder": "Search movies & shows…",
+  "search_button": "Search",
+  "trending_title": "Trending this week",
+  "results_title": "Results",
+  "request_button": "Request",
+  "available_badge": "Available",
+  "loading": "Loading…",
+  "no_results": "No results.",
+  "error_not_configured": "TMDB is not configured. Ask an administrator to set the API key in the Jelly Crowd plugin settings.",
+  "error_generic": "Something went wrong. Please try again."
+}
