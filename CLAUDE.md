@@ -47,6 +47,8 @@ Jellyfin.Plugin.JellyCrowd/
   Tasks/ReconcileTask.cs     # IScheduledTask : recalcul usage + résolution requêtes
   Models/                    # DTOs (RequestRecord, QuotaInfo, CatalogItem...)
   Web/                       # pages user-facing embarquées (HTML/JS/CSS)
+
+Jellyfin.Plugin.JellyCrowd.Tests/  # projet xUnit ; tests exécutés en CI (dotnet test)
 ```
 
 Racine : `CLAUDE.md`, `ROADMAP.md`, `README.md`, `LICENSE`, `build.yaml` (manifest plugin),
@@ -56,6 +58,7 @@ Racine : `CLAUDE.md`, `ROADMAP.md`, `README.md`, `LICENSE`, `build.yaml` (manife
 
 ```powershell
 dotnet build -c Release          # nécessite le .NET 9 SDK installé
+dotnet test  -c Release          # exécute la suite xUnit (même commande qu'en CI)
 ```
 
 Le `.dll` produit (`Jellyfin.Plugin.JellyCrowd/bin/Release/net9.0/`) se copie dans le data path Jellyfin :
@@ -72,6 +75,39 @@ Pré-requis runtime côté Jellyfin pour les pages user : installer **Plugin Pag
 - En-tête de licence GPL-3.0 si requis ; documentation XML sur les membres publics.
 - DTOs dans `Models/` ; pas de logique métier dans les contrôleurs (déléguer aux `Services/`).
 - GUID du plugin : `a1994160-4ea2-4d81-bd3c-ffe825700d98` (ne pas changer).
+
+## Règle de tests (NON NÉGOCIABLE)
+
+**Toute fonctionnalité ajoutée doit livrer ses tests dans la même PR, et la CI doit les exécuter.**
+Concrètement, on n'ajoute rien sans couverture :
+
+- **Chaque route/endpoint** (`Api/*Controller`) → test(s) couvrant le cas nominal + au moins un cas d'erreur
+  (non autorisé, entrée invalide, quota dépassé…).
+- **Chaque service** (`Services/*`) → tests unitaires de la logique (calcul d'usage, enforcement quota,
+  matching biblio, parsing TMDB…).
+- **Chaque bouton / interaction UI** → la logique métier déclenchée doit être testable et testée côté backend ;
+  pour le comportement front (Plugin Pages), extraire le JS dans des fonctions pures testables et/ou ajouter un
+  test e2e si pertinent. Pas de logique non testée cachée dans le HTML.
+- Un PR qui ajoute du code sans test associé est considéré **incomplet**.
+- La CI (`.github/workflows/build.yml`) lance `dotnet test` ; un test rouge **bloque** le merge.
+
+Le projet de tests vit dans `Jellyfin.Plugin.JellyCrowd.Tests/` (xUnit). Il référence les assemblies
+Jellyfin **sans** `ExcludeAssets` pour disposer du runtime à l'exécution.
+
+## Versionning automatique & CI/CD
+
+- **CI** (`build.yml`) : sur push `main` et chaque PR → restore + build Release + `dotnet test` + package `.zip`.
+- **Release** (`release.yml`) : sur push `main`, versionning sémantique auto piloté par un **mot-clé du message
+  de commit** :
+  - `[major]` ou `#major` → bump MAJEUR
+  - `[minor]` ou `#minor` → bump MINEUR
+  - sinon → bump PATCH
+  - `[skip release]` → pas de release
+  Le workflow estampille la version dans `Directory.Build.props` + `build.yaml`, commit `chore(release): vX.Y.Z [skip ci]`,
+  pose le tag `vX.Y.Z`, et publie une **Release GitHub** avec le `.zip` du plugin + son `.md5`.
+- Pas de CD vers un dépôt plugin installable pour l'instant (prévu M5 si besoin).
+- ⚠️ La Release pousse un commit sur `main` : si une **protection de branche** est activée, autoriser
+  `github-actions[bot]` à pousser (ou utiliser un PAT dédié).
 
 ## Contraintes clés (à ne pas oublier)
 

@@ -1,0 +1,110 @@
+name: Release
+
+# Automatic semantic versioning driven by a keyword in the commit message:
+#   [major] / #major  -> bump MAJOR (x+1.0.0)
+#   [minor] / #minor  -> bump MINOR (x.y+1.0)
+#   anything else     -> bump PATCH (x.y.z+1)
+# Skip a release entirely with [skip release] in the commit message.
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Version & Release
+    runs-on: ubuntu-latest
+    # Don't loop on the bot's own "chore(release):" bump commit, and honor [skip release].
+    if: >-
+      ${{ !startsWith(github.event.head_commit.message, 'chore(release):')
+          && !contains(github.event.head_commit.message, '[skip release]') }}
+    steps:
+      - name: Checkout (full history + tags)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Determine next version
+        id: bump
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          set -euo pipefail
+          latest=$(git tag --list 'v*' --sort=-v:refname | head -n1 || true)
+          if [ -z "$latest" ]; then base="0.1.0"; else base="${latest#v}"; fi
+          IFS='.' read -r major minor patch <<< "$base"
+          if printf '%s' "$COMMIT_MSG" | grep -qiE '\[major\]|#major'; then
+            major=$((major+1)); minor=0; patch=0
+          elif printf '%s' "$COMMIT_MSG" | grep -qiE '\[minor\]|#minor'; then
+            minor=$((minor+1)); patch=0
+          else
+            patch=$((patch+1))
+          fi
+          version="${major}.${minor}.${patch}"
+          assembly="${version}.0"
+          echo "version=$version"   >> "$GITHUB_OUTPUT"
+          echo "assembly=$assembly" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version"      >> "$GITHUB_OUTPUT"
+          echo "Next version: $version (assembly $assembly)"
+
+      - name: Abort if tag already exists
+        run: |
+          if git rev-parse "${{ steps.bump.outputs.tag }}" >/dev/null 2>&1; then
+            echo "::error::Tag ${{ steps.bump.outputs.tag }} already exists."; exit 1
+          fi
+
+      - name: Stamp version into source files
+        run: |
+          set -euo pipefail
+          asm="${{ steps.bump.outputs.assembly }}"
+          sed -i -E "s|<Version>[^<]*</Version>|<Version>${asm}</Version>|" Directory.Build.props
+          sed -i -E "s|<AssemblyVersion>[^<]*</AssemblyVersion>|<AssemblyVersion>${asm}</AssemblyVersion>|" Directory.Build.props
+          sed -i -E "s|<FileVersion>[^<]*</FileVersion>|<FileVersion>${asm}</FileVersion>|" Directory.Build.props
+          sed -i -E "s|^version: .*|version: \"${asm}\"|" build.yaml
+
+      - name: Restore, build & test
+        run: |
+          dotnet restore
+          dotnet build --configuration Release --no-restore
+          dotnet test --configuration Release --no-build --verbosity normal
+
+      - name: Package plugin
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          cp Jellyfin.Plugin.JellyCrowd/bin/Release/net9.0/Jellyfin.Plugin.JellyCrowd.dll artifacts/
+          cp build.yaml artifacts/
+          zipname="jelly-crowd-${{ steps.bump.outputs.tag }}.zip"
+          (cd artifacts && zip "$zipname" Jellyfin.Plugin.JellyCrowd.dll build.yaml && md5sum "$zipname" > "$zipname.md5")
+
+      - name: Commit version bump and tag
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Directory.Build.props build.yaml
+          git commit -m "chore(release): ${{ steps.bump.outputs.tag }} [skip ci]"
+          git tag "${{ steps.bump.outputs.tag }}"
+          git push origin HEAD:main --follow-tags
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.bump.outputs.tag }}
+          name: ${{ steps.bump.outputs.tag }}
+          generate_release_notes: true
+          files: |
+            artifacts/jelly-crowd-*.zip
+            artifacts/jelly-crowd-*.zip.md5

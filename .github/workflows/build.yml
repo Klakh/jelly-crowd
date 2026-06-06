@@ -1,14 +1,15 @@
-name: Build Plugin
+name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  build:
+  build-test:
+    name: Build & Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -19,19 +20,38 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/Directory.Build.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
       - name: Restore
         run: dotnet restore
 
       - name: Build (Release)
         run: dotnet build --configuration Release --no-restore
 
+      - name: Test
+        run: dotnet test --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/test-results.trx'
+          if-no-files-found: ignore
+
       - name: Package plugin
         run: |
           mkdir -p artifacts
           cp Jellyfin.Plugin.JellyCrowd/bin/Release/net9.0/Jellyfin.Plugin.JellyCrowd.dll artifacts/
-          cd artifacts && zip jelly-crowd.zip Jellyfin.Plugin.JellyCrowd.dll
+          cp build.yaml artifacts/
+          cd artifacts && zip jelly-crowd.zip Jellyfin.Plugin.JellyCrowd.dll build.yaml
 
-      - name: Upload artifact
+      - name: Upload plugin artifact
         uses: actions/upload-artifact@v4
         with:
           name: jelly-crowd-plugin
