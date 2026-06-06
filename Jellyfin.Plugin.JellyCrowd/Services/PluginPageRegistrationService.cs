@@ -10,7 +10,8 @@ namespace Jellyfin.Plugin.JellyCrowd.Services;
 
 /// <summary>
 /// Registers the Jelly Crowd user-facing catalog page with the Plugin Pages plugin at startup.
-/// Tolerates Plugin Pages being absent so the plugin always loads.
+/// Tolerates Plugin Pages being absent (including its assembly not being loaded at all) so the
+/// plugin always loads.
 /// </summary>
 public sealed class PluginPageRegistrationService : IHostedService
 {
@@ -36,41 +37,46 @@ public sealed class PluginPageRegistrationService : IHostedService
   /// <inheritdoc />
   public Task StartAsync(CancellationToken cancellationToken)
   {
-    TryRegister();
+    // The try/catch must wrap the *call* to RegisterPage: if the Plugin Pages assembly is missing,
+    // the type-load failure is raised when RegisterPage is JIT-compiled, i.e. at this call site,
+    // not inside RegisterPage itself.
+    try
+    {
+      RegisterPage();
+    }
+#pragma warning disable CA1031 // Registration must never break server startup, whatever the failure.
+    catch (Exception ex)
+#pragma warning restore CA1031
+    {
+      _logger.LogInformation(
+        ex,
+        "Could not register the Jelly Crowd page with Plugin Pages. "
+        + "Install the 'Plugin Pages' and 'File Transformation' plugins to enable the user-facing page.");
+    }
+
     return Task.CompletedTask;
   }
 
   /// <inheritdoc />
   public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-  private void TryRegister()
+  private void RegisterPage()
   {
-    try
+    var manager = _serviceProvider.GetService<IPluginPagesManager>();
+    if (manager is null)
     {
-      var manager = _serviceProvider.GetService<IPluginPagesManager>();
-      if (manager is null)
-      {
-        _logger.LogInformation(
-          "Plugin Pages is not installed; the Jelly Crowd catalog page was not registered. "
-          + "Install the 'Plugin Pages' and 'File Transformation' plugins to enable the user-facing page.");
-        return;
-      }
-
-      manager.RegisterPluginPage(new PluginPage
-      {
-        Id = PageId,
-        Url = PageUrl,
-        DisplayText = PageDisplayText,
-        Icon = PageIcon
-      });
-
-      _logger.LogInformation("Registered the Jelly Crowd catalog page with Plugin Pages.");
+      _logger.LogInformation("Plugin Pages is not installed; the Jelly Crowd catalog page was not registered.");
+      return;
     }
-#pragma warning disable CA1031 // Registration must never break server startup, whatever the failure.
-    catch (Exception ex)
-#pragma warning restore CA1031
+
+    manager.RegisterPluginPage(new PluginPage
     {
-      _logger.LogWarning(ex, "Failed to register the Jelly Crowd page with Plugin Pages.");
-    }
+      Id = PageId,
+      Url = PageUrl,
+      DisplayText = PageDisplayText,
+      Icon = PageIcon
+    });
+
+    _logger.LogInformation("Registered the Jelly Crowd catalog page with Plugin Pages.");
   }
 }

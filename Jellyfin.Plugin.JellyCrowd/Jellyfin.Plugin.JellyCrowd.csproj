@@ -7,6 +7,11 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
+    <!-- Required so the Plugin Pages source generator's emitted ModuleInitializer (which assumes
+         global System usings) compiles. We keep explicit usings in our own files, so IDE0005
+         (redundant using) is silenced rather than churning every file. -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <NoWarn>$(NoWarn);IDE0005</NoWarn>
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
     <CodeAnalysisRuleSet>../jellyfin.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
@@ -22,9 +27,11 @@
     <PackageReference Include="Jellyfin.Model" Version="10.11.10">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
-    <!-- Provided at runtime by the installed Plugin Pages plugin (compile-time reference only). -->
+    <!-- Provided at runtime by the installed Plugin Pages plugin (compile-time reference only).
+         PrivateAssets=all keeps its source generator from flowing into the test project. -->
     <PackageReference Include="Jellyfin.Plugin.PluginPages" Version="1.2.3">
       <ExcludeAssets>runtime</ExcludeAssets>
+      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
 
