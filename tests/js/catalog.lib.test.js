@@ -42,6 +42,13 @@ test('errorKey maps 503 to the not-configured message', () => {
   assert.strictEqual(lib.errorKey(undefined), 'error_generic');
 });
 
+test('formatRating returns one decimal or empty', () => {
+  assert.strictEqual(lib.formatRating(7.5), '7.5');
+  assert.strictEqual(lib.formatRating(8), '8.0');
+  assert.strictEqual(lib.formatRating(0), '');
+  assert.strictEqual(lib.formatRating(undefined), '');
+});
+
 test('statusLabelKey handles numeric and string statuses', () => {
   assert.strictEqual(lib.statusLabelKey(0), 'status_pending');
   assert.strictEqual(lib.statusLabelKey(1), 'status_approved');

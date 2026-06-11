@@ -35,6 +35,12 @@
     return status === 503 ? 'error_not_configured' : 'error_generic';
   }
 
+  // Format a TMDB vote average as a one-decimal string, or '' when there is no rating.
+  function formatRating(vote) {
+    var n = Number(vote);
+    return n > 0 ? n.toFixed(1) : '';
+  }
+
   // Map a request status (numeric enum or string, as serialized by the API) to its i18n key.
   function statusLabelKey(status) {
     var map = {
@@ -50,6 +56,7 @@
     pickLang: pickLang,
     yearOf: yearOf,
     formatTitle: formatTitle,
+    formatRating: formatRating,
     errorKey: errorKey,
     statusLabelKey: statusLabelKey
   };

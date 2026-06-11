@@ -1,14 +1,15 @@
 /*
  * Jelly Crowd — catalog page.
- * Browses the TMDB discovery catalog (trending + search). Requests come in M2.
- * All user-visible strings come from Web/strings/<lang>.json so the UI follows
- * the active Jellyfin/browser language (fallback: en).
+ * Browses the TMDB discovery catalog (trending + search), opens a details modal on click,
+ * and lets users request titles. All user-visible strings come from Web/strings/<lang>.json
+ * so the UI follows the active Jellyfin/browser language (fallback: en).
  */
 (function () {
   'use strict';
 
   var SUPPORTED_LANGS = ['en', 'fr'];
   var POSTER_BASE = 'https://image.tmdb.org/t/p/w342';
+  var BACKDROP_BASE = 'https://image.tmdb.org/t/p/w780';
   var lib = window.JellyCrowdLib;
   var strings = {};
 
@@ -87,7 +88,8 @@
 
   function renderCard(item) {
     var card = document.createElement('div');
-    card.className = 'jellycrowd-card';
+    card.className = 'jellycrowd-card jellycrowd-card-clickable';
+    card.addEventListener('click', function () { openModal(item); });
 
     if (item.PosterPath) {
       var img = document.createElement('img');
@@ -119,11 +121,94 @@
       button.className = 'jellycrowd-request';
       button.type = 'button';
       button.textContent = t('request_button');
-      button.addEventListener('click', function () { requestItem(item, button); });
+      button.addEventListener('click', function (e) {
+        e.stopPropagation();
+        requestItem(item, button);
+      });
       card.appendChild(button);
     }
 
     return card;
+  }
+
+  function openModal(item) {
+    var overlay = document.createElement('div');
+    overlay.className = 'jellycrowd-modal-overlay';
+
+    var modal = document.createElement('div');
+    modal.className = 'jellycrowd-modal';
+    if (item.BackdropPath) {
+      modal.style.backgroundImage = 'url("' + BACKDROP_BASE + item.BackdropPath + '")';
+    }
+
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'jellycrowd-modal-close';
+    close.setAttribute('aria-label', t('close'));
+    close.textContent = '✕';
+
+    var body = document.createElement('div');
+    body.className = 'jellycrowd-modal-body';
+
+    var title = document.createElement('h2');
+    title.className = 'jellycrowd-modal-title';
+    title.textContent = lib.formatTitle(item);
+    body.appendChild(title);
+
+    var meta = document.createElement('div');
+    meta.className = 'jellycrowd-modal-meta';
+    var rating = lib.formatRating(item.VoteAverage);
+    if (rating) {
+      var ratingSpan = document.createElement('span');
+      ratingSpan.textContent = '★ ' + rating;
+      meta.appendChild(ratingSpan);
+    }
+
+    if (item.Available) {
+      var availSpan = document.createElement('span');
+      availSpan.textContent = t('available_badge');
+      meta.appendChild(availSpan);
+    }
+
+    body.appendChild(meta);
+
+    var overview = document.createElement('p');
+    overview.className = 'jellycrowd-modal-overview';
+    overview.textContent = item.Overview || t('no_overview');
+    body.appendChild(overview);
+
+    if (!item.Available) {
+      var requestButton = document.createElement('button');
+      requestButton.className = 'jellycrowd-request';
+      requestButton.type = 'button';
+      requestButton.textContent = t('request_button');
+      requestButton.addEventListener('click', function () { requestItem(item, requestButton); });
+      body.appendChild(requestButton);
+    }
+
+    modal.appendChild(close);
+    modal.appendChild(body);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    function dismiss() {
+      overlay.remove();
+      document.removeEventListener('keydown', onKey);
+    }
+
+    function onKey(e) {
+      if (e.key === 'Escape') {
+        dismiss();
+      }
+    }
+
+    close.addEventListener('click', dismiss);
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) {
+        dismiss();
+      }
+    });
+    document.addEventListener('keydown', onKey);
   }
 
   function requestItem(item, button) {
