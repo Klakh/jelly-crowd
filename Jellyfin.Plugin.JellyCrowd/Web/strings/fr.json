@@ -32,5 +32,8 @@
   "quota_unlimited": "Illimité",
   "quota_exceeded": "Quota dépassé",
   "admin_quota_title": "Quotas disque par utilisateur (Gio)",
-  "admin_quota_hint": "Laisser vide pour le quota par défaut. 0 = illimité."
+  "admin_quota_hint": "Laisser vide pour le quota par défaut. 0 = illimité.",
+  "tab_settings": "Réglages",
+  "tab_quotas": "Quotas utilisateurs",
+  "tab_requests": "Demandes"
 }

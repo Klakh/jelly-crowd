@@ -32,5 +32,8 @@
   "quota_unlimited": "Unlimited",
   "quota_exceeded": "Quota exceeded",
   "admin_quota_title": "Per-user disk quotas (GiB)",
-  "admin_quota_hint": "Leave empty to use the default quota. 0 means unlimited."
+  "admin_quota_hint": "Leave empty to use the default quota. 0 means unlimited.",
+  "tab_settings": "Settings",
+  "tab_quotas": "User quotas",
+  "tab_requests": "Requests"
 }

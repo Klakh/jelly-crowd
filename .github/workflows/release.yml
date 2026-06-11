@@ -95,12 +95,32 @@ jobs:
           zipname="jelly-crowd-${{ steps.bump.outputs.tag }}.zip"
           (cd artifacts && zip "$zipname" Jellyfin.Plugin.JellyCrowd.dll build.yaml && md5sum "$zipname" > "$zipname.md5")
 
+      - name: Update repository manifest
+        run: |
+          set -euo pipefail
+          tag="${{ steps.bump.outputs.tag }}"
+          asm="${{ steps.bump.outputs.assembly }}"
+          zipname="jelly-crowd-${tag}.zip"
+          checksum=$(md5sum "artifacts/${zipname}" | cut -d' ' -f1)
+          sourceUrl="https://github.com/Klakh/jelly-crowd/releases/download/${tag}/${zipname}"
+          timestamp=$(date -u +%Y-%m-%dT%H:%M:%S.0000000Z)
+          entry=$(jq -n \
+            --arg v "$asm" \
+            --arg c "Release ${tag}" \
+            --arg abi "10.11.0.0" \
+            --arg url "$sourceUrl" \
+            --arg sum "$checksum" \
+            --arg ts "$timestamp" \
+            '{version: $v, changelog: $c, targetAbi: $abi, sourceUrl: $url, checksum: $sum, timestamp: $ts}')
+          jq --argjson e "$entry" '.[0].versions = ([$e] + (.[0].versions // []))' manifest.json > manifest.tmp
+          mv manifest.tmp manifest.json
+
       - name: Commit version bump and tag
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Directory.Build.props build.yaml
+          git add Directory.Build.props build.yaml manifest.json
           git commit -m "chore(release): ${{ steps.bump.outputs.tag }} [skip ci]"
           git tag "${{ steps.bump.outputs.tag }}"
           git push origin HEAD:main --follow-tags

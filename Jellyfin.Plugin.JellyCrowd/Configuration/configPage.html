@@ -3,57 +3,69 @@
 <head>
   <meta charset="utf-8">
   <title>Jelly Crowd</title>
+  <style>
+    .jcTabBar { display: flex; gap: 0.5em; margin: 1em 0 1.5em; flex-wrap: wrap; }
+    .jcTab { padding: 0.5em 1em; border: none; border-radius: 0.3em; cursor: pointer;
+             background: rgba(127, 127, 127, 0.15); color: inherit; }
+    .jcTab.jcTabActive { background: #00a4dc; color: #fff; }
+    .jcAdminRow { display: flex; align-items: center; gap: 1em; padding: 0.5em 0; }
+    .jcAdminRow > span { flex: 1; }
+  </style>
 </head>
 <body>
   <div id="JellyCrowdConfigPage" data-role="page" class="page type-interior pluginConfigurationPage"
        data-require="emby-input,emby-button,emby-select,emby-checkbox">
     <div data-role="content">
       <div class="content-primary">
+        <h2 class="sectionTitle">Jelly Crowd</h2>
+
+        <div class="jcTabBar">
+          <button type="button" id="jcTabSettings" class="jcTab jcTabActive">Settings</button>
+          <button type="button" id="jcTabQuotas" class="jcTab">User quotas</button>
+          <button type="button" id="jcTabRequests" class="jcTab">Requests</button>
+        </div>
+
         <form id="JellyCrowdConfigForm">
-          <div class="verticalSection verticalSection-extrabottompadding">
-            <h2 class="sectionTitle">Jelly Crowd</h2>
-            <p class="fieldDescription">
-              TMDB discovery catalog, user requests (admin approval queue) and per-user disk quotas.
-              This page configures the plugin; user-facing pages are served through Plugin Pages.
-            </p>
+          <div id="jcPaneSettings" class="jcTabPane">
+            <div class="inputContainer">
+              <label class="inputLabel inputLabelUnfocused" for="TmdbApiKey">TMDB API key</label>
+              <input id="TmdbApiKey" name="TmdbApiKey" type="text" is="emby-input" />
+              <div class="fieldDescription">TMDB v3 API key used to power the discovery catalog.</div>
+            </div>
+
+            <div class="inputContainer">
+              <label class="inputLabel inputLabelUnfocused" for="DefaultUserQuotaGiB">Default quota (GiB)</label>
+              <input id="DefaultUserQuotaGiB" name="DefaultUserQuotaGiB" type="number" is="emby-input" min="0" step="1" />
+              <div class="fieldDescription">Default per-user disk quota, in GiB. 0 means unlimited.</div>
+            </div>
+
+            <div class="checkboxContainer checkboxContainer-withDescription">
+              <label class="emby-checkbox-label">
+                <input id="RequireApproval" name="RequireApproval" type="checkbox" is="emby-checkbox" />
+                <span>Require admin approval for requests</span>
+              </label>
+              <div class="fieldDescription">When enabled, requests stay pending until an administrator approves them.</div>
+            </div>
+
+            <div class="inputContainer">
+              <label class="inputLabel inputLabelUnfocused" for="EstimatedMovieSizeGiB">Estimated movie size (GiB)</label>
+              <input id="EstimatedMovieSizeGiB" name="EstimatedMovieSizeGiB" type="number" is="emby-input" min="0" step="0.5" />
+              <div class="fieldDescription">Used for quota pre-checks before the real size is known.</div>
+            </div>
+
+            <div class="inputContainer">
+              <label class="inputLabel inputLabelUnfocused" for="EstimatedEpisodeSizeGiB">Estimated episode size (GiB)</label>
+              <input id="EstimatedEpisodeSizeGiB" name="EstimatedEpisodeSizeGiB" type="number" is="emby-input" min="0" step="0.5" />
+              <div class="fieldDescription">Used for quota pre-checks on series.</div>
+            </div>
           </div>
 
-          <div class="inputContainer">
-            <label class="inputLabel inputLabelUnfocused" for="TmdbApiKey">TMDB API key</label>
-            <input id="TmdbApiKey" name="TmdbApiKey" type="text" is="emby-input" />
-            <div class="fieldDescription">TMDB v3 API key used to power the discovery catalog.</div>
-          </div>
-
-          <div class="inputContainer">
-            <label class="inputLabel inputLabelUnfocused" for="DefaultUserQuotaGiB">Default quota (GiB)</label>
-            <input id="DefaultUserQuotaGiB" name="DefaultUserQuotaGiB" type="number" is="emby-input" min="0" step="1" />
-            <div class="fieldDescription">Default per-user disk quota, in GiB. 0 means unlimited.</div>
-          </div>
-
-          <div class="checkboxContainer checkboxContainer-withDescription">
-            <label class="emby-checkbox-label">
-              <input id="RequireApproval" name="RequireApproval" type="checkbox" is="emby-checkbox" />
-              <span>Require admin approval for requests</span>
-            </label>
-            <div class="fieldDescription">When enabled, requests stay pending until an administrator approves them.</div>
-          </div>
-
-          <div class="inputContainer">
-            <label class="inputLabel inputLabelUnfocused" for="EstimatedMovieSizeGiB">Estimated movie size (GiB)</label>
-            <input id="EstimatedMovieSizeGiB" name="EstimatedMovieSizeGiB" type="number" is="emby-input" min="0" step="0.5" />
-            <div class="fieldDescription">Used for quota pre-checks before the real size is known.</div>
-          </div>
-
-          <div class="inputContainer">
-            <label class="inputLabel inputLabelUnfocused" for="EstimatedEpisodeSizeGiB">Estimated episode size (GiB)</label>
-            <input id="EstimatedEpisodeSizeGiB" name="EstimatedEpisodeSizeGiB" type="number" is="emby-input" min="0" step="0.5" />
-            <div class="fieldDescription">Used for quota pre-checks on series.</div>
-          </div>
-
-          <div class="verticalSection">
-            <h3 class="sectionTitle" id="jcQuotaOverridesTitle">Per-user disk quotas (GiB)</h3>
-            <div class="fieldDescription" id="jcQuotaOverridesHint"></div>
-            <div id="jcQuotaOverrides"></div>
+          <div id="jcPaneQuotas" class="jcTabPane" style="display:none">
+            <div class="verticalSection">
+              <h3 class="sectionTitle" id="jcQuotaOverridesTitle">Per-user disk quotas (GiB)</h3>
+              <div class="fieldDescription" id="jcQuotaOverridesHint"></div>
+              <div id="jcQuotaOverrides"></div>
+            </div>
           </div>
 
           <div>
@@ -63,18 +75,32 @@
           </div>
         </form>
 
-        <div class="verticalSection">
-          <h2 id="jcAdminPendingTitle" class="sectionTitle">Pending requests</h2>
-          <p id="jcAdminPendingEmpty" class="fieldDescription" hidden></p>
-          <div id="jcAdminPending"></div>
+        <div id="jcPaneRequests" class="jcTabPane" style="display:none">
+          <div class="verticalSection">
+            <h2 id="jcAdminPendingTitle" class="sectionTitle">Pending requests</h2>
+            <p id="jcAdminPendingEmpty" class="fieldDescription" hidden></p>
+            <div id="jcAdminPending"></div>
+          </div>
         </div>
       </div>
     </div>
+
     <script type="text/javascript">
       var JellyCrowdConfig = {
         pluginUniqueId: 'a1994160-4ea2-4d81-bd3c-ffe825700d98',
         bytesPerGiB: 1024 * 1024 * 1024
       };
+
+      function jcActivateTab(tab) {
+        var isRequests = tab === 'requests';
+        document.querySelector('#JellyCrowdConfigForm').style.display = isRequests ? 'none' : '';
+        document.querySelector('#jcPaneRequests').style.display = isRequests ? '' : 'none';
+        document.querySelector('#jcPaneSettings').style.display = tab === 'settings' ? '' : 'none';
+        document.querySelector('#jcPaneQuotas').style.display = tab === 'quotas' ? '' : 'none';
+        document.querySelector('#jcTabSettings').classList.toggle('jcTabActive', tab === 'settings');
+        document.querySelector('#jcTabQuotas').classList.toggle('jcTabActive', tab === 'quotas');
+        document.querySelector('#jcTabRequests').classList.toggle('jcTabActive', isRequests);
+      }
 
       function buildQuotaOverrides(config) {
         var container = document.querySelector('#jcQuotaOverrides');
@@ -119,8 +145,13 @@
         return result;
       }
 
+      document.querySelector('#jcTabSettings').addEventListener('click', function () { jcActivateTab('settings'); });
+      document.querySelector('#jcTabQuotas').addEventListener('click', function () { jcActivateTab('quotas'); });
+      document.querySelector('#jcTabRequests').addEventListener('click', function () { jcActivateTab('requests'); });
+
       document.querySelector('#JellyCrowdConfigPage')
         .addEventListener('pageshow', function () {
+          jcActivateTab('settings');
           Dashboard.showLoadingMsg();
           ApiClient.getPluginConfiguration(JellyCrowdConfig.pluginUniqueId).then(function (config) {
             var gib = JellyCrowdConfig.bytesPerGiB;
@@ -177,6 +208,14 @@
             .catch(function () { strings = {}; });
         }
 
+        function applyLabels() {
+          document.querySelector('#jcTabSettings').textContent = t('tab_settings');
+          document.querySelector('#jcTabQuotas').textContent = t('tab_quotas');
+          document.querySelector('#jcTabRequests').textContent = t('tab_requests');
+          document.querySelector('#jcQuotaOverridesTitle').textContent = t('admin_quota_title');
+          document.querySelector('#jcQuotaOverridesHint').textContent = t('admin_quota_hint');
+        }
+
         function decide(id, action) {
           ApiClient.ajax({ type: 'POST', url: ApiClient.getUrl('JellyCrowd/Requests/' + id + '/' + action) })
             .then(load)
@@ -199,13 +238,9 @@
           empty.hidden = true;
           pending.forEach(function (request) {
             var row = document.createElement('div');
-            row.style.display = 'flex';
-            row.style.alignItems = 'center';
-            row.style.gap = '1em';
-            row.style.padding = '0.5em 0';
+            row.className = 'jcAdminRow';
 
             var label = document.createElement('span');
-            label.style.flex = '1';
             label.textContent = request.Title;
             row.appendChild(label);
 
@@ -235,8 +270,7 @@
 
         document.querySelector('#JellyCrowdConfigPage').addEventListener('pageshow', function () {
           loadStrings().then(function () {
-            document.querySelector('#jcQuotaOverridesTitle').textContent = t('admin_quota_title');
-            document.querySelector('#jcQuotaOverridesHint').textContent = t('admin_quota_hint');
+            applyLabels();
             load();
           });
         });

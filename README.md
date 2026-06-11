@@ -36,14 +36,27 @@ authentification et son thème.
   (dépôt : `https://www.iamparadox.dev/jellyfin/plugins/manifest.json`)
 - Une **clé API TMDB** (gratuite) pour le catalogue.
 
-## 🚀 Installation (en développement)
+## 🚀 Installation
+
+### Via dépôt de plugin (recommandé)
+
+1. **Dashboard → Plugins → Dépôts (Repositories) → +** et ajouter :
+   ```
+   https://raw.githubusercontent.com/Klakh/jelly-crowd/main/manifest.json
+   ```
+2. **Catalogue (Catalog)** → installer **Jelly Crowd** → redémarrer Jellyfin.
+3. Les mises à jour suivantes apparaissent automatiquement dans le catalogue.
+
+Une entrée **Jelly Crowd** apparaît directement dans la barre latérale du dashboard admin
+(onglets *Réglages / Quotas utilisateurs / Demandes*). Renseigner la clé TMDB et les quotas.
+
+### En développement (build local)
 
 ```powershell
 dotnet build -c Release
 ```
 
 Copier le `.dll` produit dans `<jellyfin-data>/plugins/JellyCrowd/`, puis redémarrer Jellyfin.
-Le plugin apparaît dans **Dashboard → Plugins**. Renseigner la clé TMDB et les quotas dans sa page de config.
 
 ## 🛠️ Développement
 

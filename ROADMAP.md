@@ -11,8 +11,8 @@ Légende : ☐ à faire · ☑ fait · ◐ en cours
 
 - **Version publiée** : releases auto sur GitHub `Klakh/jelly-crowd` (dernière `v0.1.x`). Branche `main`, CI **verte**.
 - **Fait (code)** : M0, **M1** (catalogue + modal détails + Plugin Pages), **M2** (requêtes : store JSON, RequestsController, bouton Demander, « Mes requêtes », file admin), **M3** (`LibraryMatcher` + flag `Available` + `ReconcileTask`) et **M4** (quotas disque par user : `QuotaService`, enforcement 403, barre d'usage, overrides admin).
-- **En cours / prochaine action** : **M5 — Finition & distribution** (notifications, i18n complète, thème/UX, manifest de dépôt plugin).
-- **Bloqué côté agent (à faire par l'utilisateur)** : **vérifier M3/M4 sur une instance Jellyfin live**. M1+M2 déjà validés. Reste M3 (badge « Disponible » + réconciliation) et M4 (barre d'usage + refus 403 au-delà du quota).
+- **En cours / prochaine action** : **M5 — Finition** (nav directe + onglets + manifest de dépôt FAITS ; restent notifications et passe de thème/UX).
+- **Bloqué côté agent (à faire par l'utilisateur)** : **vérifier M3/M4/M5 sur une instance live**. M1+M2 validés ; barre d'usage + liste users vus. Reste : M3 (badge « Disponible » + réconciliation), M4 (refus 403 au-delà du quota), M5 (install via dépôt + nav directe + onglets).
 
 ### Ce qui tourne déjà (vérifié en CI)
 - Pipeline complet : **CI** (`build.yml` : restore → build Release → `dotnet test` → tests JS `node --test` → package `.zip`) + **Release** (`release.yml` : versionning auto par mot-clé de commit `[major]`/`[minor]`/patch → tag + GitHub Release).
@@ -88,13 +88,15 @@ Objectif : limiter l'occupation disque par user et bloquer au-delà.
 - ☑ Affichage usage/quota côté user (barre sur « Mes requêtes ») + feedback « Quota dépassé » sur le bouton Demander. Helpers `formatBytes`/`quotaPercent` testés.
 - ☐ **Vérif (instance live)** : régler un quota bas pour un user, vérifier la barre d'usage, et qu'une requête au-delà du quota est refusée (403 → « Quota dépassé »).
 
-## M5 — Finition & distribution  ☐
+## M5 — Finition & distribution  ◐
 
+- ☑ Accès direct : page de config dans la nav du dashboard admin (`EnableInMainMenu`).
+- ☑ Onglets dans la config : Réglages / Quotas utilisateurs / Demandes.
+- ☑ **Manifest de dépôt plugin** (`manifest.json` à la racine, peuplé à chaque release par `release.yml`) + doc d'install dans le README.
+- ☑ i18n FR/EN sur les chaînes (onglets inclus).
 - ☐ Notifications (requête approuvée / disponible / quota atteint).
-- ☐ i18n FR/EN complète sur toutes les nouvelles chaînes.
-- ☐ Thème & UX alignés sur Jellyfin (via Plugin Pages).
-- ☐ Manifest de dépôt plugin installable + doc d'installation.
-- ☐ **Vérif** : install propre depuis un dépôt plugin sur une instance neuve.
+- ☐ Thème & UX : passe d'affinage.
+- ☐ **Vérif (instance live)** : ajouter le dépôt `https://raw.githubusercontent.com/Klakh/jelly-crowd/main/manifest.json`, installer/mettre à jour depuis le catalogue, vérifier la nav directe + les onglets.
 
 ---
 
