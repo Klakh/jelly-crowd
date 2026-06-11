@@ -17,7 +17,7 @@ namespace Jellyfin.Plugin.JellyCrowd.Api;
 /// Exposes the TMDB-powered discovery catalog to authenticated Jellyfin users.
 /// </summary>
 [ApiController]
-[Authorize(Policy = "DefaultAuthorization")]
+[Authorize]
 [Route("JellyCrowd/Catalog")]
 [Produces(MediaTypeNames.Application.Json)]
 public class CatalogController : ControllerBase

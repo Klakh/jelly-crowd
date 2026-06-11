@@ -141,6 +141,9 @@ suites (.NET + JS). Tout nouveau bouton/interaction expose sa logique dans un `*
   La taille réelle n'est connue qu'**après** satisfaction → enforcement à la création basé sur usage actuel +
   estimation configurable.
 - **Compat** : ne pas casser 10.11 / net9. Les pages user passent **uniquement** par Plugin Pages.
+- **Auth des contrôleurs (10.11)** : il n'existe PAS de policy nommée `DefaultAuthorization`. Pour un endpoint
+  utilisateur authentifié → `[Authorize]` (policy par défaut). Pour un endpoint admin → `[Authorize(Policy = "RequiresElevation")]`.
+  Assets statiques publics → `[AllowAnonymous]`.
 - Implémentation **milestone par milestone** (voir `ROADMAP.md`) ; M0 = scaffold qui se charge dans Jellyfin.
 
 ## Décisions d'architecture validées

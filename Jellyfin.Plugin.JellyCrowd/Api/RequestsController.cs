@@ -43,7 +43,7 @@ public class RequestsController : ControllerBase
   /// <response code="409">The user already has an active request for this title.</response>
   /// <returns>The persisted request with its generated id and pending status.</returns>
   [HttpPost]
-  [Authorize(Policy = "DefaultAuthorization")]
+  [Authorize]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(StatusCodes.Status400BadRequest)]
   [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -87,7 +87,7 @@ public class RequestsController : ControllerBase
   /// <response code="200">The user's requests.</response>
   /// <returns>The list of requests owned by the caller, newest first.</returns>
   [HttpGet("Mine")]
-  [Authorize(Policy = "DefaultAuthorization")]
+  [Authorize]
   [ProducesResponseType(StatusCodes.Status200OK)]
   public async Task<ActionResult<IReadOnlyList<RequestRecord>>> Mine(CancellationToken cancellationToken)
   {
