@@ -11,7 +11,7 @@ Légende : ☐ à faire · ☑ fait · ◐ en cours
 
 - **Version publiée** : releases auto sur GitHub `Klakh/jelly-crowd` (dernière `v0.1.x`). Branche `main`, CI **verte**.
 - **Fait (code)** : M0, **M1** (catalogue + modal détails + Plugin Pages), **M2** (requêtes : store JSON, RequestsController, bouton Demander, « Mes requêtes », file admin), **M3** (`LibraryMatcher` + flag `Available` + `ReconcileTask`) et **M4** (quotas disque par user : `QuotaService`, enforcement 403, barre d'usage, overrides admin).
-- **En cours / prochaine action** : **M5 — Finition** (nav directe + onglets + manifest de dépôt FAITS ; restent notifications et passe de thème/UX).
+- **En cours / prochaine action** : **M5 — Finition**. FAITS : nav directe, onglets, manifest de dépôt, **notifications Discord+email**, **catalogue enrichi** (filtres genres/années/notes en double-sliders, tri, survol des affiches, modal détaillé avec liens TMDB/IMDb). Reste : passe de thème/UX.
 - **Bloqué côté agent (à faire par l'utilisateur)** : **vérifier M3/M4/M5 sur une instance live**. M1+M2 validés ; barre d'usage + liste users vus. Reste : M3 (badge « Disponible » + réconciliation), M4 (refus 403 au-delà du quota), M5 (install via dépôt + nav directe + onglets).
 
 ### Ce qui tourne déjà (vérifié en CI)

@@ -64,6 +64,13 @@
     return Object.prototype.hasOwnProperty.call(order, key) ? order[key] : 99;
   }
 
+  // Return [min, max] from two numbers (used to keep dual-slider bounds ordered).
+  function orderPair(a, b) {
+    var x = Number(a);
+    var y = Number(b);
+    return x <= y ? [x, y] : [y, x];
+  }
+
   // Human-readable byte size (binary units).
   function formatBytes(bytes) {
     var n = Number(bytes) || 0;
@@ -98,6 +105,7 @@
     errorKey: errorKey,
     statusLabelKey: statusLabelKey,
     statusRank: statusRank,
+    orderPair: orderPair,
     formatBytes: formatBytes,
     quotaPercent: quotaPercent
   };

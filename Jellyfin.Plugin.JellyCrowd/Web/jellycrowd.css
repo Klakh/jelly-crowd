@@ -216,3 +216,182 @@
   background: #00a4dc;
   transition: width 0.3s ease;
 }
+
+/* Filters */
+.jellycrowd-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25em;
+  align-items: flex-end;
+  margin-bottom: 1.5em;
+  padding: 1em;
+  border-radius: 0.5em;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.jellycrowd-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  min-width: 12em;
+}
+
+.jellycrowd-filter-label {
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+.jellycrowd-typetoggle, .jellycrowd-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+}
+
+.jellycrowd-chip {
+  padding: 0.3em 0.7em;
+  border: none;
+  border-radius: 1em;
+  cursor: pointer;
+  font-size: 0.85em;
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+}
+
+.jellycrowd-chip.jellycrowd-chip-active {
+  background: #00a4dc;
+  color: #fff;
+}
+
+.jellycrowd-genres {
+  max-width: 36em;
+  max-height: 6.5em;
+  overflow-y: auto;
+}
+
+.jellycrowd-filter select {
+  padding: 0.4em;
+  border-radius: 0.3em;
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Dual range slider */
+.jellycrowd-dual {
+  position: relative;
+  height: 2.2em;
+  width: 14em;
+}
+
+.jellycrowd-dual-track {
+  position: absolute;
+  top: 0.7em;
+  left: 0;
+  right: 0;
+  height: 0.35em;
+  border-radius: 0.2em;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.jellycrowd-dual-fill {
+  position: absolute;
+  top: 0.7em;
+  height: 0.35em;
+  border-radius: 0.2em;
+  background: #00a4dc;
+}
+
+.jellycrowd-dual input[type="range"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  background: none;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.jellycrowd-dual input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: all;
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #00a4dc;
+  cursor: pointer;
+}
+
+.jellycrowd-dual input[type="range"]::-moz-range-thumb {
+  pointer-events: all;
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #00a4dc;
+  cursor: pointer;
+}
+
+.jellycrowd-dual-values {
+  position: absolute;
+  bottom: -0.2em;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8em;
+  opacity: 0.85;
+}
+
+/* Card hover */
+.jellycrowd-card-clickable .jellycrowd-poster {
+  transition: transform 0.15s ease;
+}
+
+.jellycrowd-card-clickable:hover .jellycrowd-poster {
+  transform: scale(1.04);
+}
+
+.jellycrowd-hover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: 0.5em;
+  border-radius: 0.4em;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0) 55%);
+  pointer-events: none;
+  font-size: 0.85em;
+}
+
+.jellycrowd-card-clickable:hover .jellycrowd-hover {
+  opacity: 1;
+}
+
+/* Modal extras */
+.jellycrowd-modal-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  margin-bottom: 1em;
+}
+
+.jellycrowd-modal-links {
+  display: flex;
+  gap: 0.6em;
+  margin-bottom: 1.25em;
+}
+
+.jellycrowd-modal-links a {
+  padding: 0.35em 0.8em;
+  border-radius: 0.3em;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  text-decoration: none;
+}

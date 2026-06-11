@@ -71,6 +71,12 @@ test('statusRank orders pending < approved < available < denied', () => {
   assert.ok(lib.statusRank(3) < lib.statusRank(2));
 });
 
+test('orderPair returns sorted [min, max]', () => {
+  assert.deepStrictEqual(lib.orderPair(2000, 2020), [2000, 2020]);
+  assert.deepStrictEqual(lib.orderPair(2020, 2000), [2000, 2020]);
+  assert.deepStrictEqual(lib.orderPair(5, 5), [5, 5]);
+});
+
 test('formatBytes renders binary units', () => {
   assert.strictEqual(lib.formatBytes(0), '0 B');
   assert.strictEqual(lib.formatBytes(1024), '1.0 KiB');

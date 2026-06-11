@@ -13,6 +13,36 @@
     </form>
   </header>
 
+  <div class="jellycrowd-filters" id="jcFilters">
+    <div class="jellycrowd-filter">
+      <span class="jellycrowd-filter-label" id="jcLabelType"></span>
+      <div class="jellycrowd-typetoggle">
+        <button type="button" id="jcTypeMovie" class="jellycrowd-chip jellycrowd-chip-active"></button>
+        <button type="button" id="jcTypeTv" class="jellycrowd-chip"></button>
+      </div>
+    </div>
+    <div class="jellycrowd-filter" style="min-width:20em">
+      <span class="jellycrowd-filter-label" id="jcLabelGenres"></span>
+      <div class="jellycrowd-genres" id="jcGenres"></div>
+    </div>
+    <div class="jellycrowd-filter">
+      <span class="jellycrowd-filter-label" id="jcLabelYear"></span>
+      <div class="jellycrowd-dual" id="jcYear"></div>
+    </div>
+    <div class="jellycrowd-filter">
+      <span class="jellycrowd-filter-label" id="jcLabelRating"></span>
+      <div class="jellycrowd-dual" id="jcRating"></div>
+    </div>
+    <div class="jellycrowd-filter" style="min-width:10em">
+      <span class="jellycrowd-filter-label" id="jcLabelSort"></span>
+      <select id="jcSort"></select>
+    </div>
+    <div class="jellycrowd-filter" style="min-width:auto">
+      <span class="jellycrowd-filter-label">&nbsp;</span>
+      <button type="button" id="jcReset" class="jellycrowd-chip"></button>
+    </div>
+  </div>
+
   <section class="jellycrowd-section">
     <h2 id="jcSectionTitle" class="jellycrowd-section-title"></h2>
     <p id="jcMessage" class="jellycrowd-message" hidden></p>
