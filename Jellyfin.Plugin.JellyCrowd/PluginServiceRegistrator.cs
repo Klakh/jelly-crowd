@@ -21,6 +21,10 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
     serviceCollection.AddSingleton<ICurrentUserAccessor, CurrentUserAccessor>();
     serviceCollection.AddSingleton<IRequestStore>(
       _ => new JsonRequestStore(Path.Combine(Plugin.Instance!.DataFolderPath, RequestsFileName)));
+    serviceCollection.AddSingleton<IQuotaService>(sp => new QuotaService(
+      sp.GetRequiredService<IRequestStore>(),
+      sp.GetRequiredService<ILibraryMatcher>(),
+      () => Plugin.Instance!.Configuration));
     serviceCollection.AddHostedService<PluginPageRegistrationService>();
   }
 }

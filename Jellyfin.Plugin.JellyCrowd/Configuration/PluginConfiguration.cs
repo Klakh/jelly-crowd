@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+using Jellyfin.Plugin.JellyCrowd.Models;
 using MediaBrowser.Model.Plugins;
 
 namespace Jellyfin.Plugin.JellyCrowd.Configuration;
@@ -48,4 +50,9 @@ public class PluginConfiguration : BasePluginConfiguration
   /// Gets or sets the estimated size (in bytes) of a single episode, used for quota pre-checks.
   /// </summary>
   public long EstimatedEpisodeSizeBytes { get; set; }
+
+  /// <summary>
+  /// Gets the per-user quota overrides. A user not listed here uses <see cref="DefaultUserQuotaBytes"/>.
+  /// </summary>
+  public Collection<UserQuotaOverride> QuotaOverrides { get; } = new();
 }

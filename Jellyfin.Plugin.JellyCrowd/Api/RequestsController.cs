@@ -21,16 +21,19 @@ public class RequestsController : ControllerBase
 {
   private readonly IRequestStore _store;
   private readonly ICurrentUserAccessor _userAccessor;
+  private readonly IQuotaService _quotaService;
 
   /// <summary>
   /// Initializes a new instance of the <see cref="RequestsController"/> class.
   /// </summary>
   /// <param name="store">The request store.</param>
   /// <param name="userAccessor">The current-user accessor.</param>
-  public RequestsController(IRequestStore store, ICurrentUserAccessor userAccessor)
+  /// <param name="quotaService">The quota service used to enforce per-user limits.</param>
+  public RequestsController(IRequestStore store, ICurrentUserAccessor userAccessor, IQuotaService quotaService)
   {
     _store = store;
     _userAccessor = userAccessor;
+    _quotaService = quotaService;
   }
 
   /// <summary>
@@ -40,12 +43,14 @@ public class RequestsController : ControllerBase
   /// <param name="cancellationToken">The cancellation token.</param>
   /// <response code="200">The created request.</response>
   /// <response code="400">The payload was invalid.</response>
+  /// <response code="403">The request would exceed the user's disk quota.</response>
   /// <response code="409">The user already has an active request for this title.</response>
   /// <returns>The persisted request with its generated id and pending status.</returns>
   [HttpPost]
   [Authorize]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType(StatusCodes.Status403Forbidden)]
   [ProducesResponseType(StatusCodes.Status409Conflict)]
   public async Task<ActionResult<RequestRecord>> Create([FromBody] CreateRequestDto dto, CancellationToken cancellationToken)
   {
@@ -64,6 +69,11 @@ public class RequestsController : ControllerBase
     if (await _store.ExistsActiveAsync(userId, dto.TmdbId, dto.MediaType, cancellationToken).ConfigureAwait(false))
     {
       return Conflict("You already have an active request for this title.");
+    }
+
+    if (!await _quotaService.CanRequestAsync(userId, dto.MediaType, cancellationToken).ConfigureAwait(false))
+    {
+      return StatusCode(StatusCodes.Status403Forbidden, "This request would exceed your disk quota.");
     }
 
     var created = await _store.CreateAsync(

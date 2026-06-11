@@ -19,9 +19,9 @@ public class RequestsControllerTests
 {
   private static readonly Guid User = Guid.NewGuid();
 
-  private static RequestsController CreateController(IRequestStore store, Guid? userId = null)
+  private static RequestsController CreateController(IRequestStore store, Guid? userId = null, bool canRequest = true)
   {
-    var controller = new RequestsController(store, new FakeUserAccessor(userId ?? User))
+    var controller = new RequestsController(store, new FakeUserAccessor(userId ?? User), new FakeQuotaService(canRequest))
     {
       ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
     };
@@ -78,6 +78,15 @@ public class RequestsControllerTests
   }
 
   [Fact]
+  public async Task Create_OverQuota_ReturnsForbidden()
+  {
+    var result = await CreateController(new FakeRequestStore(), canRequest: false).Create(ValidDto(), CancellationToken.None);
+
+    var obj = Assert.IsType<ObjectResult>(result.Result);
+    Assert.Equal(StatusCodes.Status403Forbidden, obj.StatusCode);
+  }
+
+  [Fact]
   public async Task Mine_ReturnsOnlyCurrentUserRequests()
   {
     var store = new FakeRequestStore();
@@ -120,6 +129,21 @@ public class RequestsControllerTests
     public FakeUserAccessor(Guid userId) => _userId = userId;
 
     public Task<Guid> GetUserIdAsync(HttpRequest request) => Task.FromResult(_userId);
+  }
+
+  private sealed class FakeQuotaService : IQuotaService
+  {
+    private readonly bool _canRequest;
+
+    public FakeQuotaService(bool canRequest) => _canRequest = canRequest;
+
+    public long GetQuotaBytes(Guid userId) => 0;
+
+    public Task<QuotaInfo> GetUsageAsync(Guid userId, CancellationToken cancellationToken)
+      => Task.FromResult(new QuotaInfo());
+
+    public Task<bool> CanRequestAsync(Guid userId, string mediaType, CancellationToken cancellationToken)
+      => Task.FromResult(_canRequest);
   }
 
   private sealed class FakeRequestStore : IRequestStore

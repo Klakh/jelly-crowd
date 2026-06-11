@@ -48,6 +48,52 @@ public sealed class LibraryMatcher : ILibraryMatcher
     return _libraryManager.GetItemList(query).Count > 0;
   }
 
+  /// <inheritdoc />
+  public long GetSizeBytes(string mediaType, int tmdbId)
+  {
+    var kind = MediaTypeToKind(mediaType);
+    if (kind is null)
+    {
+      return 0;
+    }
+
+    var matches = _libraryManager.GetItemList(new InternalItemsQuery
+    {
+      IncludeItemTypes = new[] { kind.Value },
+      HasAnyProviderId = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+      {
+        [MetadataProvider.Tmdb.ToString()] = tmdbId.ToString(CultureInfo.InvariantCulture)
+      },
+      Recursive = true
+    });
+
+    long total = 0;
+    foreach (var item in matches)
+    {
+      total += kind.Value == BaseItemKind.Series ? SumEpisodeSizes(item) : item.Size ?? 0;
+    }
+
+    return total;
+  }
+
+  private long SumEpisodeSizes(BaseItem series)
+  {
+    var episodes = _libraryManager.GetItemList(new InternalItemsQuery
+    {
+      IncludeItemTypes = new[] { BaseItemKind.Episode },
+      AncestorIds = new[] { series.Id },
+      Recursive = true
+    });
+
+    long total = 0;
+    foreach (var episode in episodes)
+    {
+      total += episode.Size ?? 0;
+    }
+
+    return total;
+  }
+
   /// <summary>
   /// Maps a Jelly Crowd media type to the corresponding Jellyfin item kind.
   /// </summary>

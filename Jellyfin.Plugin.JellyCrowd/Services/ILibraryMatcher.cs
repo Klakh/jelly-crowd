@@ -12,4 +12,12 @@ public interface ILibraryMatcher
   /// <param name="tmdbId">The TMDB identifier.</param>
   /// <returns><c>true</c> when a matching library item exists.</returns>
   bool Exists(string mediaType, int tmdbId);
+
+  /// <summary>
+  /// Gets the on-disk size (in bytes) of the matching library item(s), summing episodes for shows.
+  /// </summary>
+  /// <param name="mediaType">The media type (<c>movie</c> or <c>tv</c>).</param>
+  /// <param name="tmdbId">The TMDB identifier.</param>
+  /// <returns>The total size in bytes, or 0 when nothing matches.</returns>
+  long GetSizeBytes(string mediaType, int tmdbId);
 }
