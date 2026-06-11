@@ -24,6 +24,8 @@ public class PluginConfiguration : BasePluginConfiguration
     RequireApproval = true;
     EstimatedMovieSizeBytes = 4L * 1024 * 1024 * 1024; // 4 GiB
     EstimatedEpisodeSizeBytes = 1L * 1024 * 1024 * 1024; // 1 GiB
+    MaxRequestsPerPeriod = 0;
+    RequestPeriod = RequestPeriod.Week;
     DiscordWebhookUrl = string.Empty;
     SmtpHost = string.Empty;
     SmtpPort = 587;
@@ -58,6 +60,16 @@ public class PluginConfiguration : BasePluginConfiguration
   /// Gets or sets the estimated size (in bytes) of a single episode, used for quota pre-checks.
   /// </summary>
   public long EstimatedEpisodeSizeBytes { get; set; }
+
+  /// <summary>
+  /// Gets or sets the maximum number of requests a user may make per <see cref="RequestPeriod"/>. 0 means unlimited.
+  /// </summary>
+  public int MaxRequestsPerPeriod { get; set; }
+
+  /// <summary>
+  /// Gets or sets the rolling window for the request rate limit.
+  /// </summary>
+  public RequestPeriod RequestPeriod { get; set; }
 
   /// <summary>
   /// Gets the per-user quota overrides. A user not listed here uses <see cref="DefaultUserQuotaBytes"/>.

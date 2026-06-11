@@ -60,6 +60,21 @@
               <input id="EstimatedEpisodeSizeGiB" name="EstimatedEpisodeSizeGiB" type="number" is="emby-input" min="0" step="0.5" />
               <div class="fieldDescription">Used for quota pre-checks on series.</div>
             </div>
+
+            <div class="inputContainer">
+              <label class="inputLabel inputLabelUnfocused" for="MaxRequestsPerPeriod">Max requests per period</label>
+              <input id="MaxRequestsPerPeriod" type="number" is="emby-input" min="0" step="1" />
+              <div class="fieldDescription">Maximum requests a user can make per period. 0 = unlimited.</div>
+            </div>
+
+            <div class="selectContainer">
+              <label class="selectLabel" for="RequestPeriod">Request period</label>
+              <select is="emby-select" id="RequestPeriod" class="emby-select-withcolor emby-select">
+                <option value="Day">Day</option>
+                <option value="Week">Week</option>
+                <option value="Month">Month</option>
+              </select>
+            </div>
           </div>
 
           <div id="jcPaneQuotas" class="jcTabPane" style="display:none">
@@ -212,6 +227,8 @@
             document.querySelector('#RequireApproval').checked = !!config.RequireApproval;
             document.querySelector('#EstimatedMovieSizeGiB').value = (config.EstimatedMovieSizeBytes || 0) / gib;
             document.querySelector('#EstimatedEpisodeSizeGiB').value = (config.EstimatedEpisodeSizeBytes || 0) / gib;
+            document.querySelector('#MaxRequestsPerPeriod').value = config.MaxRequestsPerPeriod || 0;
+            document.querySelector('#RequestPeriod').value = config.RequestPeriod || 'Week';
             document.querySelector('#DiscordWebhookUrl').value = config.DiscordWebhookUrl || '';
             document.querySelector('#SmtpHost').value = config.SmtpHost || '';
             document.querySelector('#SmtpPort').value = config.SmtpPort || 587;
@@ -235,6 +252,8 @@
             config.RequireApproval = document.querySelector('#RequireApproval').checked;
             config.EstimatedMovieSizeBytes = Math.round(parseFloat(document.querySelector('#EstimatedMovieSizeGiB').value || '0') * gib);
             config.EstimatedEpisodeSizeBytes = Math.round(parseFloat(document.querySelector('#EstimatedEpisodeSizeGiB').value || '0') * gib);
+            config.MaxRequestsPerPeriod = parseInt(document.querySelector('#MaxRequestsPerPeriod').value || '0', 10);
+            config.RequestPeriod = document.querySelector('#RequestPeriod').value;
             config.DiscordWebhookUrl = document.querySelector('#DiscordWebhookUrl').value;
             config.SmtpHost = document.querySelector('#SmtpHost').value;
             config.SmtpPort = parseInt(document.querySelector('#SmtpPort').value || '587', 10);

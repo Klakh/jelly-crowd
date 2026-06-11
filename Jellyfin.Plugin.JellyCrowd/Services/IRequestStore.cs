@@ -61,4 +61,13 @@ public interface IRequestStore
   /// <param name="cancellationToken">The cancellation token.</param>
   /// <returns><c>true</c> when an active duplicate exists.</returns>
   Task<bool> ExistsActiveAsync(Guid userId, int tmdbId, string mediaType, CancellationToken cancellationToken);
+
+  /// <summary>
+  /// Counts the user's non-denied requests created at or after the given UTC instant (for rate limiting).
+  /// </summary>
+  /// <param name="userId">The user identifier.</param>
+  /// <param name="sinceUtc">The window start (UTC).</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <returns>The number of requests in the window.</returns>
+  Task<int> CountUserRequestsSinceAsync(Guid userId, DateTime sinceUtc, CancellationToken cancellationToken);
 }

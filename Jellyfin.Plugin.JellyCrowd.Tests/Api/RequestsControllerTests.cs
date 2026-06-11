@@ -192,5 +192,8 @@ public class RequestsControllerTests
         r.UserId == userId && r.TmdbId == tmdbId
         && string.Equals(r.MediaType, mediaType, StringComparison.Ordinal)
         && r.Status != RequestStatus.Denied));
+
+    public Task<int> CountUserRequestsSinceAsync(Guid userId, DateTime sinceUtc, CancellationToken cancellationToken)
+      => Task.FromResult(_items.Count(r => r.UserId == userId && r.Status != RequestStatus.Denied && r.RequestedAt >= sinceUtc));
   }
 }

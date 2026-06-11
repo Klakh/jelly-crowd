@@ -88,6 +88,21 @@ public sealed class JsonRequestStoreTests : IDisposable
   }
 
   [Fact]
+  public async Task CountUserRequestsSinceAsync_CountsRecentNonDenied()
+  {
+    var user = Guid.NewGuid();
+    await _store.CreateAsync(NewRecord(user, 1), CancellationToken.None);
+    var denied = await _store.CreateAsync(NewRecord(user, 2), CancellationToken.None);
+    await _store.UpdateStatusAsync(denied.Id, RequestStatus.Denied, Guid.NewGuid(), CancellationToken.None);
+
+    var past = DateTime.UtcNow.AddDays(-7);
+    var future = DateTime.UtcNow.AddDays(1);
+
+    Assert.Equal(1, await _store.CountUserRequestsSinceAsync(user, past, CancellationToken.None));
+    Assert.Equal(0, await _store.CountUserRequestsSinceAsync(user, future, CancellationToken.None));
+  }
+
+  [Fact]
   public async Task Persistence_SurvivesNewInstance()
   {
     await _store.CreateAsync(NewRecord(Guid.NewGuid()), CancellationToken.None);

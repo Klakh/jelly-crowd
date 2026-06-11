@@ -52,6 +52,7 @@ public class RequestsController : ControllerBase
   /// <response code="400">The payload was invalid.</response>
   /// <response code="403">The request would exceed the user's disk quota.</response>
   /// <response code="409">The user already has an active request for this title.</response>
+  /// <response code="429">The user reached their request limit for the period.</response>
   /// <returns>The persisted request with its generated id and pending status.</returns>
   [HttpPost]
   [Authorize]
@@ -59,6 +60,7 @@ public class RequestsController : ControllerBase
   [ProducesResponseType(StatusCodes.Status400BadRequest)]
   [ProducesResponseType(StatusCodes.Status403Forbidden)]
   [ProducesResponseType(StatusCodes.Status409Conflict)]
+  [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
   public async Task<ActionResult<RequestRecord>> Create([FromBody] CreateRequestDto dto, CancellationToken cancellationToken)
   {
     if (dto is null || string.IsNullOrWhiteSpace(dto.Title))
@@ -76,6 +78,17 @@ public class RequestsController : ControllerBase
     if (await _store.ExistsActiveAsync(userId, dto.TmdbId, dto.MediaType, cancellationToken).ConfigureAwait(false))
     {
       return Conflict("You already have an active request for this title.");
+    }
+
+    var config = Plugin.Instance?.Configuration;
+    if (config is not null && config.MaxRequestsPerPeriod > 0)
+    {
+      var since = DateTime.UtcNow - PeriodToSpan(config.RequestPeriod);
+      var recent = await _store.CountUserRequestsSinceAsync(userId, since, cancellationToken).ConfigureAwait(false);
+      if (recent >= config.MaxRequestsPerPeriod)
+      {
+        return StatusCode(StatusCodes.Status429TooManyRequests, "You have reached your request limit for this period.");
+      }
     }
 
     if (!await _quotaService.CanRequestAsync(userId, dto.MediaType, cancellationToken).ConfigureAwait(false))
@@ -163,6 +176,13 @@ public class RequestsController : ControllerBase
   private static bool IsValidMediaType(string mediaType)
     => string.Equals(mediaType, "movie", StringComparison.Ordinal)
        || string.Equals(mediaType, "tv", StringComparison.Ordinal);
+
+  private static TimeSpan PeriodToSpan(Models.RequestPeriod period) => period switch
+  {
+    Models.RequestPeriod.Day => TimeSpan.FromDays(1),
+    Models.RequestPeriod.Month => TimeSpan.FromDays(30),
+    _ => TimeSpan.FromDays(7)
+  };
 
   private async Task<ActionResult<RequestRecord>> DecideAsync(Guid id, RequestStatus status, CancellationToken cancellationToken)
   {
