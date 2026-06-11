@@ -72,6 +72,31 @@
     return row;
   }
 
+  function renderQuota(info) {
+    var el = document.getElementById('jcQuota');
+    el.innerHTML = '';
+    if (!info) {
+      return;
+    }
+
+    var unlimited = info.Unlimited || info.QuotaBytes <= 0;
+    var label = document.createElement('div');
+    label.className = 'jellycrowd-quota-label';
+    label.textContent = t('quota_storage') + ' : ' + lib.formatBytes(info.UsedBytes)
+      + ' / ' + (unlimited ? t('quota_unlimited') : lib.formatBytes(info.QuotaBytes));
+    el.appendChild(label);
+
+    if (!unlimited) {
+      var track = document.createElement('div');
+      track.className = 'jellycrowd-quota-track';
+      var fill = document.createElement('div');
+      fill.className = 'jellycrowd-quota-fill';
+      fill.style.width = lib.quotaPercent(info.UsedBytes, info.QuotaBytes) + '%';
+      track.appendChild(fill);
+      el.appendChild(track);
+    }
+  }
+
   function render(requests) {
     var list = document.getElementById('jcReqList');
     list.innerHTML = '';
@@ -89,6 +114,11 @@
     loadStrings().then(function () {
       document.getElementById('jcReqTitle').textContent = t('my_requests_title');
       setMessage(t('loading'));
+
+      apiGet('JellyCrowd/Quota/Me')
+        .then(renderQuota)
+        .catch(function () { /* quota bar is best-effort */ });
+
       apiGet('JellyCrowd/Requests/Mine')
         .then(render)
         .catch(function () { setMessage(t('error_generic')); });

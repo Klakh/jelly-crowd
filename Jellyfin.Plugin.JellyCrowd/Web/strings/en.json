@@ -27,5 +27,10 @@
   "admin_no_pending": "No pending requests.",
   "admin_approve": "Approve",
   "admin_deny": "Deny",
-  "admin_requested_by": "Requested by"
+  "admin_requested_by": "Requested by",
+  "quota_storage": "Storage",
+  "quota_unlimited": "Unlimited",
+  "quota_exceeded": "Quota exceeded",
+  "admin_quota_title": "Per-user disk quotas (GiB)",
+  "admin_quota_hint": "Leave empty to use the default quota. 0 means unlimited."
 }

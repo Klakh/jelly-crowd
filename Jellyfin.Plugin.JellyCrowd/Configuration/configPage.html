@@ -50,6 +50,12 @@
             <div class="fieldDescription">Used for quota pre-checks on series.</div>
           </div>
 
+          <div class="verticalSection">
+            <h3 class="sectionTitle" id="jcQuotaOverridesTitle">Per-user disk quotas (GiB)</h3>
+            <div class="fieldDescription" id="jcQuotaOverridesHint"></div>
+            <div id="jcQuotaOverrides"></div>
+          </div>
+
           <div>
             <button is="emby-button" type="submit" class="raised button-submit block emby-button">
               <span>Save</span>
@@ -70,6 +76,49 @@
         bytesPerGiB: 1024 * 1024 * 1024
       };
 
+      function buildQuotaOverrides(config) {
+        var container = document.querySelector('#jcQuotaOverrides');
+        container.innerHTML = '';
+        var overrides = config.QuotaOverrides || [];
+        ApiClient.getUsers().then(function (users) {
+          users.forEach(function (user) {
+            var existing = overrides.filter(function (o) { return o.UserId === user.Id; })[0];
+            var row = document.createElement('div');
+            row.className = 'inputContainer';
+            var label = document.createElement('label');
+            label.className = 'inputLabel inputLabelUnfocused';
+            label.textContent = user.Name;
+            var input = document.createElement('input');
+            input.type = 'number';
+            input.min = '0';
+            input.step = '1';
+            input.setAttribute('is', 'emby-input');
+            input.className = 'jc-quota-override';
+            input.setAttribute('data-userid', user.Id);
+            if (existing) {
+              input.value = (existing.QuotaBytes || 0) / JellyCrowdConfig.bytesPerGiB;
+            }
+            row.appendChild(label);
+            row.appendChild(input);
+            container.appendChild(row);
+          });
+        });
+      }
+
+      function collectQuotaOverrides() {
+        var gib = JellyCrowdConfig.bytesPerGiB;
+        var result = [];
+        document.querySelectorAll('.jc-quota-override').forEach(function (input) {
+          if (input.value !== '' && input.value !== null) {
+            result.push({
+              UserId: input.getAttribute('data-userid'),
+              QuotaBytes: Math.round(parseFloat(input.value) * gib)
+            });
+          }
+        });
+        return result;
+      }
+
       document.querySelector('#JellyCrowdConfigPage')
         .addEventListener('pageshow', function () {
           Dashboard.showLoadingMsg();
@@ -80,6 +129,7 @@
             document.querySelector('#RequireApproval').checked = !!config.RequireApproval;
             document.querySelector('#EstimatedMovieSizeGiB').value = (config.EstimatedMovieSizeBytes || 0) / gib;
             document.querySelector('#EstimatedEpisodeSizeGiB').value = (config.EstimatedEpisodeSizeBytes || 0) / gib;
+            buildQuotaOverrides(config);
             Dashboard.hideLoadingMsg();
           });
         });
@@ -94,6 +144,7 @@
             config.RequireApproval = document.querySelector('#RequireApproval').checked;
             config.EstimatedMovieSizeBytes = Math.round(parseFloat(document.querySelector('#EstimatedMovieSizeGiB').value || '0') * gib);
             config.EstimatedEpisodeSizeBytes = Math.round(parseFloat(document.querySelector('#EstimatedEpisodeSizeGiB').value || '0') * gib);
+            config.QuotaOverrides = collectQuotaOverrides();
             ApiClient.updatePluginConfiguration(JellyCrowdConfig.pluginUniqueId, config).then(function (result) {
               Dashboard.processPluginConfigurationUpdateResult(result);
             });
@@ -183,7 +234,11 @@
         }
 
         document.querySelector('#JellyCrowdConfigPage').addEventListener('pageshow', function () {
-          loadStrings().then(load);
+          loadStrings().then(function () {
+            document.querySelector('#jcQuotaOverridesTitle').textContent = t('admin_quota_title');
+            document.querySelector('#jcQuotaOverridesHint').textContent = t('admin_quota_hint');
+            load();
+          });
         });
       })();
     </script>

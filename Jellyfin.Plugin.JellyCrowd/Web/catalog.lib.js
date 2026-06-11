@@ -52,12 +52,40 @@
     return map[String(status).toLowerCase()] || 'status_pending';
   }
 
+  // Human-readable byte size (binary units).
+  function formatBytes(bytes) {
+    var n = Number(bytes) || 0;
+    var units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
+    var i = 0;
+    while (n >= 1024 && i < units.length - 1) {
+      n /= 1024;
+      i++;
+    }
+    return (i === 0 ? n : n.toFixed(1)) + ' ' + units[i];
+  }
+
+  // Usage percentage clamped to 0..100; 0 when the quota is unlimited (<= 0).
+  function quotaPercent(used, quota) {
+    var u = Number(used) || 0;
+    var q = Number(quota) || 0;
+    if (q <= 0) {
+      return 0;
+    }
+    var p = (u / q) * 100;
+    if (p < 0) {
+      return 0;
+    }
+    return p > 100 ? 100 : p;
+  }
+
   return {
     pickLang: pickLang,
     yearOf: yearOf,
     formatTitle: formatTitle,
     formatRating: formatRating,
     errorKey: errorKey,
-    statusLabelKey: statusLabelKey
+    statusLabelKey: statusLabelKey,
+    formatBytes: formatBytes,
+    quotaPercent: quotaPercent
   };
 });

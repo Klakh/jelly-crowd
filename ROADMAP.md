@@ -10,9 +10,9 @@ Légende : ☐ à faire · ☑ fait · ◐ en cours
 ## 📍 État actuel (point de reprise) — au 2026-06-11
 
 - **Version publiée** : releases auto sur GitHub `Klakh/jelly-crowd` (dernière `v0.1.x`). Branche `main`, CI **verte**.
-- **Fait (code)** : M0, **M1** (catalogue + modal détails + Plugin Pages), **M2** (requêtes : store JSON, RequestsController, bouton Demander, « Mes requêtes », file admin) et **M3** (`LibraryMatcher` + flag `Available` au catalogue + `ReconcileTask`).
-- **En cours / prochaine action** : **M4 — Quotas disque par utilisateur**.
-- **Bloqué côté agent (à faire par l'utilisateur)** : **vérifier M1/M2/M3 sur une instance Jellyfin live**. M1+M2 déjà validés par l'utilisateur ; reste à valider M3 (badge « Disponible » + tâche de réconciliation).
+- **Fait (code)** : M0, **M1** (catalogue + modal détails + Plugin Pages), **M2** (requêtes : store JSON, RequestsController, bouton Demander, « Mes requêtes », file admin), **M3** (`LibraryMatcher` + flag `Available` + `ReconcileTask`) et **M4** (quotas disque par user : `QuotaService`, enforcement 403, barre d'usage, overrides admin).
+- **En cours / prochaine action** : **M5 — Finition & distribution** (notifications, i18n complète, thème/UX, manifest de dépôt plugin).
+- **Bloqué côté agent (à faire par l'utilisateur)** : **vérifier M3/M4 sur une instance Jellyfin live**. M1+M2 déjà validés. Reste M3 (badge « Disponible » + réconciliation) et M4 (barre d'usage + refus 403 au-delà du quota).
 
 ### Ce qui tourne déjà (vérifié en CI)
 - Pipeline complet : **CI** (`build.yml` : restore → build Release → `dotnet test` → tests JS `node --test` → package `.zip`) + **Release** (`release.yml` : versionning auto par mot-clé de commit `[major]`/`[minor]`/patch → tag + GitHub Release).
@@ -76,16 +76,17 @@ Objectif : savoir ce qui existe déjà et résoudre automatiquement les requête
 - ☑ `ReconcileTask` (`IScheduledTask`, intervalle 6 h, auto-découverte) : passe les requêtes `Approved` en `Available` quand le média est en biblio. Tests.
 - ☐ **Vérif (instance live)** : un titre déjà présent apparaît « Disponible » dans le catalogue ; après ajout d'un média demandé en biblio, la tâche planifiée « Jelly Crowd: reconcile requests » le bascule en `Available`.
 
-## M4 — Quotas disque par utilisateur  ☐
+## M4 — Quotas disque par utilisateur  ◐ (code fait, reste la vérif live)
 
 Objectif : limiter l'occupation disque par user et bloquer au-delà.
 
-- ☐ `QuotaService` : usage_user = Σ tailles fichiers des items liés aux requêtes satisfaites du user.
-- ☐ Config : quota global par défaut + overrides par user + tailles d'estimation (film/épisode). *(Les champs `DefaultUserQuotaBytes`, `EstimatedMovieSizeBytes`, `EstimatedEpisodeSizeBytes` existent déjà dans `PluginConfiguration`.)*
-- ☐ `QuotaController` : usage par user ; get/set quotas (admin).
-- ☐ Enforcement à la création de requête : refus si `usage + estimation > quota`.
-- ☐ Affichage usage/quota côté user (barre de progression).
-- ☐ **Vérif** : un user au-delà de son quota ne peut plus créer de requête ; l'usage reflète la biblio.
+- ☑ `LibraryMatcher.GetSizeBytes` : taille fichier d'un film, ou somme des tailles d'épisodes d'une série.
+- ☑ `QuotaService` : usage = Σ tailles des requêtes `Available` du user ; `CanRequestAsync` = usage réel + estimations des requêtes en cours + estimation de la nouvelle ≤ quota ; override user sinon défaut ; 0 = illimité. Tests.
+- ☑ Config : `QuotaOverrides` (par user) + défaut + estimations ; édités via la page admin (liste des users + Gio).
+- ☑ `QuotaController` : `GET /JellyCrowd/Quota/Me` (usage du user courant).
+- ☑ Enforcement à la création (`RequestsController.Create` → **403** si dépassement). Test.
+- ☑ Affichage usage/quota côté user (barre sur « Mes requêtes ») + feedback « Quota dépassé » sur le bouton Demander. Helpers `formatBytes`/`quotaPercent` testés.
+- ☐ **Vérif (instance live)** : régler un quota bas pour un user, vérifier la barre d'usage, et qu'une requête au-delà du quota est refusée (403 → « Quota dépassé »).
 
 ## M5 — Finition & distribution  ☐
 

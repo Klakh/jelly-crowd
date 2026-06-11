@@ -57,3 +57,15 @@ test('statusLabelKey handles numeric and string statuses', () => {
   assert.strictEqual(lib.statusLabelKey('Approved'), 'status_approved');
   assert.strictEqual(lib.statusLabelKey('weird'), 'status_pending');
 });
+
+test('formatBytes renders binary units', () => {
+  assert.strictEqual(lib.formatBytes(0), '0 B');
+  assert.strictEqual(lib.formatBytes(1024), '1.0 KiB');
+  assert.strictEqual(lib.formatBytes(5 * 1024 * 1024 * 1024), '5.0 GiB');
+});
+
+test('quotaPercent clamps and treats <=0 quota as unlimited', () => {
+  assert.strictEqual(lib.quotaPercent(5, 10), 50);
+  assert.strictEqual(lib.quotaPercent(15, 10), 100);
+  assert.strictEqual(lib.quotaPercent(1, 0), 0);
+});

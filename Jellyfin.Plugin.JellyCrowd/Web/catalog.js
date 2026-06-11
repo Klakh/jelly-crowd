@@ -224,6 +224,8 @@
     }).catch(function (error) {
       if (error && error.status === 409) {
         button.textContent = t('already_requested');
+      } else if (error && error.status === 403) {
+        button.textContent = t('quota_exceeded');
       } else {
         button.disabled = false;
         button.textContent = t('request_button');
