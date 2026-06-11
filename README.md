@@ -45,10 +45,24 @@ authentification et son thème.
    https://raw.githubusercontent.com/Klakh/jelly-crowd/main/manifest.json
    ```
 2. **Catalogue (Catalog)** → installer **Jelly Crowd** → redémarrer Jellyfin.
-3. Les mises à jour suivantes apparaissent automatiquement dans le catalogue.
 
 Une entrée **Jelly Crowd** apparaît directement dans la barre latérale du dashboard admin
 (onglets *Réglages / Quotas utilisateurs / Demandes*). Renseigner la clé TMDB et les quotas.
+
+### 🔄 Mises à jour automatiques (sans télécharger de zip)
+
+Une fois le dépôt ajouté, **plus jamais besoin de télécharger/décompresser un `.zip`** : à chaque
+nouvelle version, le `manifest.json` du dépôt est mis à jour automatiquement par la CI (avec
+l'URL de l'archive et son empreinte MD5). Jellyfin détecte la nouvelle version et l'installe.
+
+- **Mise à jour en place** : *Dashboard → Plugins → Jelly Crowd* affiche « Mise à jour disponible » → 1 clic, puis redémarrage.
+- **Tout automatique** : *Dashboard → Plugins → Repositories* / réglages des plugins → activer la
+  vérification/installation auto des mises à jour ; Jellyfin applique alors les nouvelles versions au
+  redémarrage, sans intervention.
+
+> ⚠️ **Pré-requis indispensable** : le dépôt GitHub `Klakh/jelly-crowd` doit être **public** — Jellyfin
+> télécharge le `manifest.json` (URL *raw*) et l'archive de release **sans authentification**. Si le dépôt
+> est privé, l'install/MAJ par dépôt échoue (il faudrait alors héberger le manifest ailleurs).
 
 ### En développement (build local)
 

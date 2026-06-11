@@ -196,10 +196,22 @@
     var body = document.createElement('div');
     body.className = 'jellycrowd-modal-body';
 
+    if (item.PosterPath) {
+      var poster = document.createElement('img');
+      poster.className = 'jellycrowd-modal-poster';
+      poster.loading = 'lazy';
+      poster.alt = item.Title || '';
+      poster.src = POSTER_BASE + item.PosterPath;
+      body.appendChild(poster);
+    }
+
+    var content = document.createElement('div');
+    content.className = 'jellycrowd-modal-content';
+
     var title = document.createElement('h2');
     title.className = 'jellycrowd-modal-title';
     title.textContent = lib.formatTitle(item);
-    body.appendChild(title);
+    content.appendChild(title);
 
     var meta = document.createElement('div');
     meta.className = 'jellycrowd-modal-meta';
@@ -214,21 +226,21 @@
       availSpan.textContent = t('available_badge');
       meta.appendChild(availSpan);
     }
-    body.appendChild(meta);
+    content.appendChild(meta);
 
     var genresEl = document.createElement('div');
     genresEl.className = 'jellycrowd-modal-genres';
-    body.appendChild(genresEl);
+    content.appendChild(genresEl);
 
     var overview = document.createElement('p');
     overview.className = 'jellycrowd-modal-overview';
     overview.textContent = item.Overview || t('no_overview');
-    body.appendChild(overview);
+    content.appendChild(overview);
 
     var links = document.createElement('div');
     links.className = 'jellycrowd-modal-links';
     links.appendChild(externalLink('https://www.themoviedb.org/' + item.MediaType + '/' + item.TmdbId, t('view_tmdb')));
-    body.appendChild(links);
+    content.appendChild(links);
 
     if (!item.Available) {
       var requestButton = document.createElement('button');
@@ -236,8 +248,10 @@
       requestButton.type = 'button';
       requestButton.textContent = t('request_button');
       requestButton.addEventListener('click', function () { requestItem(item, requestButton); });
-      body.appendChild(requestButton);
+      content.appendChild(requestButton);
     }
+
+    body.appendChild(content);
 
     // Enrich with full details (genres, runtime, IMDb link).
     apiGet('JellyCrowd/Catalog/Details/' + item.MediaType + '/' + item.TmdbId + '?language=' + encodeURIComponent(fullLocale()))
