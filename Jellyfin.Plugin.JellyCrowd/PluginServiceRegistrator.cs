@@ -1,3 +1,4 @@
+using System.IO;
 using Jellyfin.Plugin.JellyCrowd.Services;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Plugins;
@@ -10,10 +11,15 @@ namespace Jellyfin.Plugin.JellyCrowd;
 /// </summary>
 public class PluginServiceRegistrator : IPluginServiceRegistrator
 {
+  private const string RequestsFileName = "requests.json";
+
   /// <inheritdoc />
   public void RegisterServices(IServiceCollection serviceCollection, IServerApplicationHost applicationHost)
   {
     serviceCollection.AddSingleton<ITmdbClient, TmdbClient>();
+    serviceCollection.AddSingleton<ICurrentUserAccessor, CurrentUserAccessor>();
+    serviceCollection.AddSingleton<IRequestStore>(
+      _ => new JsonRequestStore(Path.Combine(Plugin.Instance!.DataFolderPath, RequestsFileName)));
     serviceCollection.AddHostedService<PluginPageRegistrationService>();
   }
 }

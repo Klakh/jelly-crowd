@@ -1,0 +1,154 @@
+using System;
+using System.Collections.Generic;
+using System.Net.Mime;
+using System.Threading;
+using System.Threading.Tasks;
+using Jellyfin.Plugin.JellyCrowd.Models;
+using Jellyfin.Plugin.JellyCrowd.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Jellyfin.Plugin.JellyCrowd.Api;
+
+/// <summary>
+/// User media requests and the admin approval queue.
+/// </summary>
+[ApiController]
+[Route("JellyCrowd/Requests")]
+[Produces(MediaTypeNames.Application.Json)]
+public class RequestsController : ControllerBase
+{
+  private readonly IRequestStore _store;
+  private readonly ICurrentUserAccessor _userAccessor;
+
+  /// <summary>
+  /// Initializes a new instance of the <see cref="RequestsController"/> class.
+  /// </summary>
+  /// <param name="store">The request store.</param>
+  /// <param name="userAccessor">The current-user accessor.</param>
+  public RequestsController(IRequestStore store, ICurrentUserAccessor userAccessor)
+  {
+    _store = store;
+    _userAccessor = userAccessor;
+  }
+
+  /// <summary>
+  /// Creates a media request for the current user.
+  /// </summary>
+  /// <param name="dto">The request payload.</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <response code="200">The created request.</response>
+  /// <response code="400">The payload was invalid.</response>
+  /// <response code="409">The user already has an active request for this title.</response>
+  /// <returns>The created request.</returns>
+  [HttpPost]
+  [Authorize(Policy = "DefaultAuthorization")]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType(StatusCodes.Status409Conflict)]
+  public async Task<ActionResult<RequestRecord>> Create([FromBody] CreateRequestDto dto, CancellationToken cancellationToken)
+  {
+    if (dto is null || string.IsNullOrWhiteSpace(dto.Title))
+    {
+      return BadRequest("A title is required.");
+    }
+
+    if (!IsValidMediaType(dto.MediaType))
+    {
+      return BadRequest("The 'mediaType' must be 'movie' or 'tv'.");
+    }
+
+    var userId = await _userAccessor.GetUserIdAsync(Request).ConfigureAwait(false);
+
+    if (await _store.ExistsActiveAsync(userId, dto.TmdbId, dto.MediaType, cancellationToken).ConfigureAwait(false))
+    {
+      return Conflict("You already have an active request for this title.");
+    }
+
+    var created = await _store.CreateAsync(
+      new RequestRecord
+      {
+        UserId = userId,
+        TmdbId = dto.TmdbId,
+        MediaType = dto.MediaType,
+        Title = dto.Title,
+        PosterPath = dto.PosterPath
+      },
+      cancellationToken).ConfigureAwait(false);
+
+    return Ok(created);
+  }
+
+  /// <summary>
+  /// Lists the current user's requests.
+  /// </summary>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <response code="200">The user's requests.</response>
+  /// <returns>The user's requests.</returns>
+  [HttpGet("Mine")]
+  [Authorize(Policy = "DefaultAuthorization")]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  public async Task<ActionResult<IReadOnlyList<RequestRecord>>> Mine(CancellationToken cancellationToken)
+  {
+    var userId = await _userAccessor.GetUserIdAsync(Request).ConfigureAwait(false);
+    var items = await _store.GetByUserAsync(userId, cancellationToken).ConfigureAwait(false);
+    return Ok(items);
+  }
+
+  /// <summary>
+  /// Lists all requests (administrators only).
+  /// </summary>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <response code="200">All requests.</response>
+  /// <returns>All requests.</returns>
+  [HttpGet]
+  [Authorize(Policy = "RequiresElevation")]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  public async Task<ActionResult<IReadOnlyList<RequestRecord>>> All(CancellationToken cancellationToken)
+  {
+    var items = await _store.GetAllAsync(cancellationToken).ConfigureAwait(false);
+    return Ok(items);
+  }
+
+  /// <summary>
+  /// Approves a request (administrators only).
+  /// </summary>
+  /// <param name="id">The request identifier.</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <response code="200">The updated request.</response>
+  /// <response code="404">No such request.</response>
+  /// <returns>The updated request.</returns>
+  [HttpPost("{id}/Approve")]
+  [Authorize(Policy = "RequiresElevation")]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status404NotFound)]
+  public Task<ActionResult<RequestRecord>> Approve(Guid id, CancellationToken cancellationToken)
+    => DecideAsync(id, RequestStatus.Approved, cancellationToken);
+
+  /// <summary>
+  /// Denies a request (administrators only).
+  /// </summary>
+  /// <param name="id">The request identifier.</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <response code="200">The updated request.</response>
+  /// <response code="404">No such request.</response>
+  /// <returns>The updated request.</returns>
+  [HttpPost("{id}/Deny")]
+  [Authorize(Policy = "RequiresElevation")]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status404NotFound)]
+  public Task<ActionResult<RequestRecord>> Deny(Guid id, CancellationToken cancellationToken)
+    => DecideAsync(id, RequestStatus.Denied, cancellationToken);
+
+  private static bool IsValidMediaType(string mediaType)
+    => string.Equals(mediaType, "movie", StringComparison.Ordinal)
+       || string.Equals(mediaType, "tv", StringComparison.Ordinal);
+
+  private async Task<ActionResult<RequestRecord>> DecideAsync(Guid id, RequestStatus status, CancellationToken cancellationToken)
+  {
+    var adminId = await _userAccessor.GetUserIdAsync(Request).ConfigureAwait(false);
+    var updated = await _store.UpdateStatusAsync(id, status, adminId, cancellationToken).ConfigureAwait(false);
+    return updated is null ? NotFound() : Ok(updated);
+  }
+}

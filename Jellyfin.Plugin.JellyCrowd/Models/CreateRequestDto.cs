@@ -1,0 +1,27 @@
+namespace Jellyfin.Plugin.JellyCrowd.Models;
+
+/// <summary>
+/// Payload sent by a user to create a media request.
+/// </summary>
+public class CreateRequestDto
+{
+  /// <summary>
+  /// Gets or sets the TMDB identifier of the title to request.
+  /// </summary>
+  public int TmdbId { get; set; }
+
+  /// <summary>
+  /// Gets or sets the media type, either <c>movie</c> or <c>tv</c>.
+  /// </summary>
+  public string MediaType { get; set; } = string.Empty;
+
+  /// <summary>
+  /// Gets or sets the display title.
+  /// </summary>
+  public string Title { get; set; } = string.Empty;
+
+  /// <summary>
+  /// Gets or sets the TMDB relative poster path.
+  /// </summary>
+  public string? PosterPath { get; set; }
+}
