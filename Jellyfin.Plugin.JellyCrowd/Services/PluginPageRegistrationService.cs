@@ -22,7 +22,8 @@ public sealed class PluginPageRegistrationService : IHostedService
   private static readonly (string Id, string Url, string DisplayText, string Icon)[] Pages =
   {
     ("jellycrowd", "/JellyCrowd/Web/catalog.html", "Jelly Crowd", "movie"),
-    ("jellycrowd-requests", "/JellyCrowd/Web/requests.html", "My Requests", "playlist_add_check")
+    ("jellycrowd-requests", "/JellyCrowd/Web/requests.html", "My Requests", "playlist_add_check"),
+    ("jellycrowd-mymedia", "/JellyCrowd/Web/mymedia.html", "My Media", "video_library")
   };
 
   private readonly IServiceProvider _serviceProvider;

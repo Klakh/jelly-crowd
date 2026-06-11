@@ -75,6 +75,12 @@
                 <option value="Month">Month</option>
               </select>
             </div>
+
+            <div class="inputContainer">
+              <label class="inputLabel inputLabelUnfocused" for="DeletionRetentionHours">Deletion retention (hours)</label>
+              <input id="DeletionRetentionHours" type="number" is="emby-input" min="0" step="1" />
+              <div class="fieldDescription">Grace period before media a user flagged for deletion is removed from disk.</div>
+            </div>
           </div>
 
           <div id="jcPaneQuotas" class="jcTabPane" style="display:none">
@@ -229,6 +235,7 @@
             document.querySelector('#EstimatedEpisodeSizeGiB').value = (config.EstimatedEpisodeSizeBytes || 0) / gib;
             document.querySelector('#MaxRequestsPerPeriod').value = config.MaxRequestsPerPeriod || 0;
             document.querySelector('#RequestPeriod').value = config.RequestPeriod || 'Week';
+            document.querySelector('#DeletionRetentionHours').value = config.DeletionRetentionHours != null ? config.DeletionRetentionHours : 24;
             document.querySelector('#DiscordWebhookUrl').value = config.DiscordWebhookUrl || '';
             document.querySelector('#SmtpHost').value = config.SmtpHost || '';
             document.querySelector('#SmtpPort').value = config.SmtpPort || 587;
@@ -254,6 +261,7 @@
             config.EstimatedEpisodeSizeBytes = Math.round(parseFloat(document.querySelector('#EstimatedEpisodeSizeGiB').value || '0') * gib);
             config.MaxRequestsPerPeriod = parseInt(document.querySelector('#MaxRequestsPerPeriod').value || '0', 10);
             config.RequestPeriod = document.querySelector('#RequestPeriod').value;
+            config.DeletionRetentionHours = parseInt(document.querySelector('#DeletionRetentionHours').value || '0', 10);
             config.DiscordWebhookUrl = document.querySelector('#DiscordWebhookUrl').value;
             config.SmtpHost = document.querySelector('#SmtpHost').value;
             config.SmtpPort = parseInt(document.querySelector('#SmtpPort').value || '587', 10);

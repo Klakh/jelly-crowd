@@ -70,4 +70,38 @@ public interface IRequestStore
   /// <param name="cancellationToken">The cancellation token.</param>
   /// <returns>The number of requests in the window.</returns>
   Task<int> CountUserRequestsSinceAsync(Guid userId, DateTime sinceUtc, CancellationToken cancellationToken);
+
+  /// <summary>
+  /// Marks a request available and records the matching Jellyfin library item id.
+  /// </summary>
+  /// <param name="id">The request identifier.</param>
+  /// <param name="jellyfinItemId">The Jellyfin library item id (32-char hex).</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <returns>The updated request, or <c>null</c> if not found.</returns>
+  Task<RequestRecord?> MarkAvailableAsync(Guid id, string jellyfinItemId, CancellationToken cancellationToken);
+
+  /// <summary>
+  /// Flags one of the user's available requests for deletion (sets the deletion timestamp).
+  /// </summary>
+  /// <param name="id">The request identifier.</param>
+  /// <param name="userId">The owner (must match).</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <returns>The updated request, or <c>null</c> if not found, not owned, or not available.</returns>
+  Task<RequestRecord?> RequestDeletionAsync(Guid id, Guid userId, CancellationToken cancellationToken);
+
+  /// <summary>
+  /// Gets requests whose deletion was requested at or before the given cutoff (retention elapsed).
+  /// </summary>
+  /// <param name="cutoffUtc">The cutoff instant (UTC).</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <returns>The requests due for deletion.</returns>
+  Task<IReadOnlyList<RequestRecord>> GetDueForDeletionAsync(DateTime cutoffUtc, CancellationToken cancellationToken);
+
+  /// <summary>
+  /// Removes a request from the store.
+  /// </summary>
+  /// <param name="id">The request identifier.</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <returns>A task that completes when the request has been removed.</returns>
+  Task DeleteAsync(Guid id, CancellationToken cancellationToken);
 }

@@ -26,6 +26,7 @@ public class PluginConfiguration : BasePluginConfiguration
     EstimatedEpisodeSizeBytes = 1L * 1024 * 1024 * 1024; // 1 GiB
     MaxRequestsPerPeriod = 0;
     RequestPeriod = RequestPeriod.Week;
+    DeletionRetentionHours = 24;
     DiscordWebhookUrl = string.Empty;
     SmtpHost = string.Empty;
     SmtpPort = 587;
@@ -70,6 +71,12 @@ public class PluginConfiguration : BasePluginConfiguration
   /// Gets or sets the rolling window for the request rate limit.
   /// </summary>
   public RequestPeriod RequestPeriod { get; set; }
+
+  /// <summary>
+  /// Gets or sets the grace period (in hours) between a user requesting deletion and the media being
+  /// actually removed from disk by the scheduled task. 0 deletes at the next task run.
+  /// </summary>
+  public int DeletionRetentionHours { get; set; }
 
   /// <summary>
   /// Gets the per-user quota overrides. A user not listed here uses <see cref="DefaultUserQuotaBytes"/>.

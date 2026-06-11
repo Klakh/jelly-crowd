@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using Jellyfin.Plugin.JellyCrowd.Configuration;
 using Jellyfin.Plugin.JellyCrowd.Services;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Plugins;
@@ -18,14 +20,16 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
   {
     serviceCollection.AddSingleton<ITmdbClient, TmdbClient>();
     serviceCollection.AddSingleton<ILibraryMatcher, LibraryMatcher>();
+    serviceCollection.AddSingleton<IMediaDeleter, MediaDeleter>();
     serviceCollection.AddSingleton<ICurrentUserAccessor, CurrentUserAccessor>();
     serviceCollection.AddSingleton<INotificationService, NotificationService>();
     serviceCollection.AddSingleton<IRequestStore>(
       _ => new JsonRequestStore(Path.Combine(Plugin.Instance!.DataFolderPath, RequestsFileName)));
+    serviceCollection.AddSingleton<Func<PluginConfiguration>>(_ => () => Plugin.Instance!.Configuration);
     serviceCollection.AddSingleton<IQuotaService>(sp => new QuotaService(
       sp.GetRequiredService<IRequestStore>(),
       sp.GetRequiredService<ILibraryMatcher>(),
-      () => Plugin.Instance!.Configuration));
+      sp.GetRequiredService<Func<PluginConfiguration>>()));
     serviceCollection.AddHostedService<PluginPageRegistrationService>();
   }
 }

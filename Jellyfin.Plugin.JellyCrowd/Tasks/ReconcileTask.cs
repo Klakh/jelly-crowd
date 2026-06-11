@@ -62,9 +62,10 @@ public sealed class ReconcileTask : IScheduledTask
       cancellationToken.ThrowIfCancellationRequested();
 
       var request = approved[i];
-      if (_libraryMatcher.Exists(request.MediaType, request.TmdbId))
+      var itemId = _libraryMatcher.FindItemId(request.MediaType, request.TmdbId);
+      if (itemId is not null)
       {
-        await _store.UpdateStatusAsync(request.Id, RequestStatus.Available, request.DecidedBy ?? Guid.Empty, cancellationToken).ConfigureAwait(false);
+        await _store.MarkAvailableAsync(request.Id, itemId, cancellationToken).ConfigureAwait(false);
         await _notificationService.NotifyRequestEventAsync(request, NotificationEvent.Available, cancellationToken).ConfigureAwait(false);
         resolved++;
       }

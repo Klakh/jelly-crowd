@@ -122,6 +122,30 @@ public class RequestsControllerTests
     Assert.IsType<NotFoundResult>(result.Result);
   }
 
+  [Fact]
+  public async Task RequestDeletion_OwnAvailable_ReturnsOk()
+  {
+    var store = new FakeRequestStore();
+    var created = (RequestRecord)((OkObjectResult)(await CreateController(store).Create(ValidDto(), CancellationToken.None)).Result!).Value!;
+    await store.MarkAvailableAsync(created.Id, "x", CancellationToken.None);
+
+    var result = await CreateController(store).RequestDeletion(created.Id, CancellationToken.None);
+
+    Assert.IsType<OkObjectResult>(result.Result);
+  }
+
+  [Fact]
+  public async Task RequestDeletion_NotOwner_ReturnsNotFound()
+  {
+    var store = new FakeRequestStore();
+    var created = (RequestRecord)((OkObjectResult)(await CreateController(store, User).Create(ValidDto(), CancellationToken.None)).Result!).Value!;
+    await store.MarkAvailableAsync(created.Id, "x", CancellationToken.None);
+
+    var result = await CreateController(store, Guid.NewGuid()).RequestDeletion(created.Id, CancellationToken.None);
+
+    Assert.IsType<NotFoundResult>(result.Result);
+  }
+
   private sealed class FakeUserAccessor : ICurrentUserAccessor
   {
     private readonly Guid _userId;
@@ -195,5 +219,38 @@ public class RequestsControllerTests
 
     public Task<int> CountUserRequestsSinceAsync(Guid userId, DateTime sinceUtc, CancellationToken cancellationToken)
       => Task.FromResult(_items.Count(r => r.UserId == userId && r.Status != RequestStatus.Denied && r.RequestedAt >= sinceUtc));
+
+    public Task<RequestRecord?> MarkAvailableAsync(Guid id, string jellyfinItemId, CancellationToken cancellationToken)
+    {
+      var record = _items.FirstOrDefault(r => r.Id == id);
+      if (record is not null)
+      {
+        record.Status = RequestStatus.Available;
+        record.JellyfinItemId = jellyfinItemId;
+      }
+
+      return Task.FromResult(record);
+    }
+
+    public Task<RequestRecord?> RequestDeletionAsync(Guid id, Guid userId, CancellationToken cancellationToken)
+    {
+      var record = _items.FirstOrDefault(r => r.Id == id);
+      if (record is null || record.UserId != userId || record.Status != RequestStatus.Available || record.DeletionRequestedAt is not null)
+      {
+        return Task.FromResult<RequestRecord?>(null);
+      }
+
+      record.DeletionRequestedAt = DateTime.UtcNow;
+      return Task.FromResult<RequestRecord?>(record);
+    }
+
+    public Task<IReadOnlyList<RequestRecord>> GetDueForDeletionAsync(DateTime cutoffUtc, CancellationToken cancellationToken)
+      => Task.FromResult<IReadOnlyList<RequestRecord>>(_items.Where(r => r.DeletionRequestedAt is not null && r.DeletionRequestedAt <= cutoffUtc).ToList());
+
+    public Task DeleteAsync(Guid id, CancellationToken cancellationToken)
+    {
+      _items.RemoveAll(r => r.Id == id);
+      return Task.CompletedTask;
+    }
   }
 }

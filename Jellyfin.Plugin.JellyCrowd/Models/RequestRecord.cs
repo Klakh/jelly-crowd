@@ -61,4 +61,15 @@ public class RequestRecord
   /// Gets or sets the administrator who approved or denied the request, if any.
   /// </summary>
   public Guid? DecidedBy { get; set; }
+
+  /// <summary>
+  /// Gets or sets the Jellyfin library item id (32-char hex) once the request is available; used for deletion.
+  /// </summary>
+  public string? JellyfinItemId { get; set; }
+
+  /// <summary>
+  /// Gets or sets the UTC time the user asked for this media to be deleted, if any.
+  /// The scheduled deletion task removes it once the retention period has elapsed.
+  /// </summary>
+  public DateTime? DeletionRequestedAt { get; set; }
 }

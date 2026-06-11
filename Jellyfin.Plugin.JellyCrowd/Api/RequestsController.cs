@@ -173,6 +173,25 @@ public class RequestsController : ControllerBase
   public Task<ActionResult<RequestRecord>> Deny(Guid id, CancellationToken cancellationToken)
     => DecideAsync(id, RequestStatus.Denied, cancellationToken);
 
+  /// <summary>
+  /// Flags one of the current user's available titles for deletion (removed later by the scheduled task).
+  /// </summary>
+  /// <param name="id">The request identifier.</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <response code="200">The request was flagged for deletion.</response>
+  /// <response code="404">No matching available request owned by the user.</response>
+  /// <returns>The updated request.</returns>
+  [HttpPost("{id}/RequestDeletion")]
+  [Authorize]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status404NotFound)]
+  public async Task<ActionResult<RequestRecord>> RequestDeletion(Guid id, CancellationToken cancellationToken)
+  {
+    var userId = await _userAccessor.GetUserIdAsync(Request).ConfigureAwait(false);
+    var updated = await _store.RequestDeletionAsync(id, userId, cancellationToken).ConfigureAwait(false);
+    return updated is null ? NotFound() : Ok(updated);
+  }
+
   private static bool IsValidMediaType(string mediaType)
     => string.Equals(mediaType, "movie", StringComparison.Ordinal)
        || string.Equals(mediaType, "tv", StringComparison.Ordinal);
