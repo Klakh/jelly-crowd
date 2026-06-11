@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.JellyCrowd.Configuration;
@@ -51,9 +53,10 @@ public sealed class QuotaService : IQuotaService
     var requests = await _store.GetByUserAsync(userId, cancellationToken).ConfigureAwait(false);
 
     long used = 0;
+    var counted = new HashSet<string>(StringComparer.Ordinal);
     foreach (var request in requests)
     {
-      if (request.Status == RequestStatus.Available)
+      if (request.Status == RequestStatus.Available && counted.Add(TitleKey(request)))
       {
         used += _libraryMatcher.GetSizeBytes(request.MediaType, request.TmdbId);
       }
@@ -74,11 +77,15 @@ public sealed class QuotaService : IQuotaService
     var requests = await _store.GetByUserAsync(userId, cancellationToken).ConfigureAwait(false);
 
     long committed = 0;
+    var counted = new HashSet<string>(StringComparer.Ordinal);
     foreach (var request in requests)
     {
       if (request.Status == RequestStatus.Available)
       {
-        committed += _libraryMatcher.GetSizeBytes(request.MediaType, request.TmdbId);
+        if (counted.Add(TitleKey(request)))
+        {
+          committed += _libraryMatcher.GetSizeBytes(request.MediaType, request.TmdbId);
+        }
       }
       else if (request.Status is RequestStatus.Pending or RequestStatus.Approved)
       {
@@ -88,6 +95,9 @@ public sealed class QuotaService : IQuotaService
 
     return committed + EstimateBytes(mediaType) <= quota;
   }
+
+  private static string TitleKey(RequestRecord request)
+    => request.MediaType + ":" + request.TmdbId.ToString(CultureInfo.InvariantCulture);
 
   private long EstimateBytes(string mediaType)
   {

@@ -21,7 +21,9 @@ public static class NotificationMessages
     ArgumentNullException.ThrowIfNull(request);
 
     var kind = string.Equals(request.MediaType, "tv", StringComparison.Ordinal) ? "show" : "movie";
-    var title = request.Title;
+    var title = request.Season.HasValue
+      ? string.Format(CultureInfo.InvariantCulture, "{0} (Season {1})", request.Title, request.Season.Value)
+      : request.Title;
 
     return notificationEvent switch
     {

@@ -116,6 +116,35 @@ public static class TmdbResponseParser
     return genres;
   }
 
+  /// <summary>
+  /// Parses the seasons from a TMDB show detail payload (<c>/tv/{id}</c>).
+  /// </summary>
+  /// <param name="json">The raw TMDB JSON payload.</param>
+  /// <returns>The parsed seasons.</returns>
+  public static IReadOnlyList<Season> ParseSeasons(string json)
+  {
+    ArgumentNullException.ThrowIfNull(json);
+
+    var seasons = new List<Season>();
+    using var doc = JsonDocument.Parse(json);
+    if (!doc.RootElement.TryGetProperty("seasons", out var array) || array.ValueKind != JsonValueKind.Array)
+    {
+      return seasons;
+    }
+
+    foreach (var element in array.EnumerateArray())
+    {
+      seasons.Add(new Season
+      {
+        SeasonNumber = GetInt(element, "season_number"),
+        Name = GetString(element, "name") ?? string.Empty,
+        EpisodeCount = GetInt(element, "episode_count")
+      });
+    }
+
+    return seasons;
+  }
+
   private static IReadOnlyList<string> GetGenreNames(JsonElement element)
   {
     if (!element.TryGetProperty("genres", out var array) || array.ValueKind != JsonValueKind.Array)

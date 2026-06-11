@@ -43,6 +43,11 @@ public class RequestRecord
   public string? ReleaseDate { get; set; }
 
   /// <summary>
+  /// Gets or sets the requested season number for shows (null = movie or whole show).
+  /// </summary>
+  public int? Season { get; set; }
+
+  /// <summary>
   /// Gets or sets the current status.
   /// </summary>
   public RequestStatus Status { get; set; }

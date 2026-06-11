@@ -107,6 +107,24 @@ public class TmdbResponseParserTests
   }
 
   [Fact]
+  public void ParseSeasons_MapsNumberNameAndCount()
+  {
+    const string json = """
+    { "seasons": [
+      { "season_number": 1, "name": "Season 1", "episode_count": 10 },
+      { "season_number": 2, "name": "Season 2", "episode_count": 8 }
+    ] }
+    """;
+
+    var seasons = TmdbResponseParser.ParseSeasons(json);
+
+    Assert.Equal(2, seasons.Count);
+    Assert.Equal(1, seasons[0].SeasonNumber);
+    Assert.Equal("Season 1", seasons[0].Name);
+    Assert.Equal(10, seasons[0].EpisodeCount);
+  }
+
+  [Fact]
   public void ParseGenres_MapsIdAndName()
   {
     const string json = """{ "genres": [ { "id": 28, "name": "Action" }, { "id": 12, "name": "Adventure" } ] }""";

@@ -456,3 +456,20 @@
   color: #fff;
   text-decoration: none;
 }
+
+.jellycrowd-seasons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  margin-top: 0.5em;
+}
+
+.jellycrowd-season-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0.35em 0.6em;
+  border-radius: 0.3em;
+  background: rgba(255, 255, 255, 0.06);
+}

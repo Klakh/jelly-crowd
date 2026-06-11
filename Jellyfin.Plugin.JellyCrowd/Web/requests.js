@@ -76,7 +76,7 @@
 
     var main = document.createElement('div');
     main.className = 'jellycrowd-request-main';
-    main.textContent = lib.formatTitle(request);
+    main.textContent = lib.formatTitle(request) + (request.Season ? ' · S' + request.Season : '');
     row.appendChild(main);
 
     var key = lib.statusLabelKey(request.Status);

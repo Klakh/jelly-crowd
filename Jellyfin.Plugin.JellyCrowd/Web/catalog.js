@@ -180,7 +180,7 @@
     return card;
   }
 
-  function requestItem(item, button) {
+  function requestItem(item, button, season) {
     button.disabled = true;
     button.textContent = t('requesting');
     apiPost('JellyCrowd/Requests', {
@@ -188,7 +188,8 @@
       MediaType: item.MediaType,
       Title: item.Title,
       PosterPath: item.PosterPath,
-      ReleaseDate: item.ReleaseDate
+      ReleaseDate: item.ReleaseDate,
+      Season: (typeof season === 'number') ? season : null
     }).then(function () {
       button.textContent = t('requested');
     }).catch(function (error) {
@@ -212,6 +213,31 @@
     a.rel = 'noopener noreferrer';
     a.textContent = text;
     return a;
+  }
+
+  function renderSeasonRequests(container, item, seasons) {
+    container.innerHTML = '';
+    (seasons || []).forEach(function (season) {
+      var row = document.createElement('div');
+      row.className = 'jellycrowd-season-row';
+
+      var label = document.createElement('span');
+      label.textContent = season.Name + (season.EpisodeCount ? ' (' + season.EpisodeCount + ')' : '');
+      row.appendChild(label);
+
+      if (quotaExceeded) {
+        row.appendChild(blockedRequestButton());
+      } else {
+        var btn = document.createElement('button');
+        btn.className = 'jellycrowd-request';
+        btn.type = 'button';
+        btn.textContent = t('request_button');
+        btn.addEventListener('click', function () { requestItem(item, btn, season.SeasonNumber); });
+        row.appendChild(btn);
+      }
+
+      container.appendChild(row);
+    });
   }
 
   function openModal(item) {
@@ -280,7 +306,14 @@
     content.appendChild(links);
 
     if (!item.Available) {
-      if (quotaExceeded) {
+      if (item.MediaType === 'tv') {
+        var seasonsEl = document.createElement('div');
+        seasonsEl.className = 'jellycrowd-seasons';
+        content.appendChild(seasonsEl);
+        apiGet('JellyCrowd/Catalog/Seasons/' + item.TmdbId + '?language=' + encodeURIComponent(fullLocale()))
+          .then(function (seasons) { renderSeasonRequests(seasonsEl, item, seasons); })
+          .catch(function () { /* seasons are best-effort */ });
+      } else if (quotaExceeded) {
         content.appendChild(blockedRequestButton());
       } else {
         var requestButton = document.createElement('button');

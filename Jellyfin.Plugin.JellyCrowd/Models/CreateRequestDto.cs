@@ -29,4 +29,9 @@ public class CreateRequestDto
   /// Gets or sets the release/first-air date (ISO string).
   /// </summary>
   public string? ReleaseDate { get; set; }
+
+  /// <summary>
+  /// Gets or sets the requested season number for shows (null = movie or whole show).
+  /// </summary>
+  public int? Season { get; set; }
 }

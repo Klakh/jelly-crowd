@@ -211,10 +211,11 @@ public class RequestsControllerTests
       return Task.FromResult(record);
     }
 
-    public Task<bool> ExistsActiveAsync(Guid userId, int tmdbId, string mediaType, CancellationToken cancellationToken)
+    public Task<bool> ExistsActiveAsync(Guid userId, int tmdbId, string mediaType, int? season, CancellationToken cancellationToken)
       => Task.FromResult(_items.Any(r =>
         r.UserId == userId && r.TmdbId == tmdbId
         && string.Equals(r.MediaType, mediaType, StringComparison.Ordinal)
+        && r.Season == season
         && r.Status != RequestStatus.Denied));
 
     public Task<int> CountUserRequestsSinceAsync(Guid userId, DateTime sinceUtc, CancellationToken cancellationToken)

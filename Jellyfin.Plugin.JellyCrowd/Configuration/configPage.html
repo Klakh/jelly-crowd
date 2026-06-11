@@ -356,7 +356,7 @@
 
             var label = document.createElement('span');
             label.className = 'jcAdminTitle';
-            label.textContent = request.Title;
+            label.textContent = request.Title + (request.Season ? ' · S' + request.Season : '');
             row.appendChild(label);
 
             var status = document.createElement('span');

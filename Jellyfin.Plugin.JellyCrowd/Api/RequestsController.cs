@@ -75,7 +75,7 @@ public class RequestsController : ControllerBase
 
     var userId = await _userAccessor.GetUserIdAsync(Request).ConfigureAwait(false);
 
-    if (await _store.ExistsActiveAsync(userId, dto.TmdbId, dto.MediaType, cancellationToken).ConfigureAwait(false))
+    if (await _store.ExistsActiveAsync(userId, dto.TmdbId, dto.MediaType, dto.Season, cancellationToken).ConfigureAwait(false))
     {
       return Conflict("You already have an active request for this title.");
     }
@@ -104,7 +104,8 @@ public class RequestsController : ControllerBase
         MediaType = dto.MediaType,
         Title = dto.Title,
         PosterPath = dto.PosterPath,
-        ReleaseDate = dto.ReleaseDate
+        ReleaseDate = dto.ReleaseDate,
+        Season = dto.Season
       },
       cancellationToken).ConfigureAwait(false);
 

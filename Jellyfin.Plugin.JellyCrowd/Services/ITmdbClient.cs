@@ -47,6 +47,15 @@ public interface ITmdbClient
   Task<IReadOnlyList<Genre>> GetGenresAsync(string mediaType, string language, CancellationToken cancellationToken);
 
   /// <summary>
+  /// Gets the seasons of a show.
+  /// </summary>
+  /// <param name="tmdbId">The show's TMDB identifier.</param>
+  /// <param name="language">The TMDB language code.</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <returns>The show's seasons.</returns>
+  Task<IReadOnlyList<Season>> GetSeasonsAsync(int tmdbId, string language, CancellationToken cancellationToken);
+
+  /// <summary>
   /// Gets the details for a single movie or show.
   /// </summary>
   /// <param name="mediaType">The media type (<c>movie</c> or <c>tv</c>).</param>

@@ -60,11 +60,11 @@ public sealed class JsonRequestStoreTests : IDisposable
     var user = Guid.NewGuid();
     var created = await _store.CreateAsync(NewRecord(user, 42), CancellationToken.None);
 
-    Assert.True(await _store.ExistsActiveAsync(user, 42, "movie", CancellationToken.None));
+    Assert.True(await _store.ExistsActiveAsync(user, 42, "movie", null, CancellationToken.None));
 
     await _store.UpdateStatusAsync(created.Id, RequestStatus.Denied, Guid.NewGuid(), CancellationToken.None);
 
-    Assert.False(await _store.ExistsActiveAsync(user, 42, "movie", CancellationToken.None));
+    Assert.False(await _store.ExistsActiveAsync(user, 42, "movie", null, CancellationToken.None));
   }
 
   [Fact]

@@ -173,5 +173,15 @@ public class CatalogControllerTests
 
       return Task.FromResult<IReadOnlyList<Genre>>(new List<Genre>());
     }
+
+    public Task<IReadOnlyList<Season>> GetSeasonsAsync(int tmdbId, string language, CancellationToken cancellationToken)
+    {
+      if (Throw is not null)
+      {
+        throw Throw;
+      }
+
+      return Task.FromResult<IReadOnlyList<Season>>(new List<Season>());
+    }
   }
 }

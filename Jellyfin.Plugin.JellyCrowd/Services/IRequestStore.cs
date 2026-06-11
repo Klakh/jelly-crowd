@@ -58,9 +58,10 @@ public interface IRequestStore
   /// <param name="userId">The user identifier.</param>
   /// <param name="tmdbId">The TMDB identifier.</param>
   /// <param name="mediaType">The media type.</param>
+  /// <param name="season">The season number (null for movies/whole show).</param>
   /// <param name="cancellationToken">The cancellation token.</param>
   /// <returns><c>true</c> when an active duplicate exists.</returns>
-  Task<bool> ExistsActiveAsync(Guid userId, int tmdbId, string mediaType, CancellationToken cancellationToken);
+  Task<bool> ExistsActiveAsync(Guid userId, int tmdbId, string mediaType, int? season, CancellationToken cancellationToken);
 
   /// <summary>
   /// Counts the user's non-denied requests created at or after the given UTC instant (for rate limiting).

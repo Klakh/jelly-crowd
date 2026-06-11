@@ -124,7 +124,7 @@ public sealed class JsonRequestStore : IRequestStore, IDisposable
   }
 
   /// <inheritdoc />
-  public async Task<bool> ExistsActiveAsync(Guid userId, int tmdbId, string mediaType, CancellationToken cancellationToken)
+  public async Task<bool> ExistsActiveAsync(Guid userId, int tmdbId, string mediaType, int? season, CancellationToken cancellationToken)
   {
     await _mutex.WaitAsync(cancellationToken).ConfigureAwait(false);
     try
@@ -134,6 +134,7 @@ public sealed class JsonRequestStore : IRequestStore, IDisposable
         r.UserId == userId
         && r.TmdbId == tmdbId
         && string.Equals(r.MediaType, mediaType, StringComparison.Ordinal)
+        && r.Season == season
         && r.Status != RequestStatus.Denied);
     }
     finally

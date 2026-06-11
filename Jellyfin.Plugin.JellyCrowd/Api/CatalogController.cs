@@ -223,6 +223,38 @@ public class CatalogController : ControllerBase
     }
   }
 
+  /// <summary>
+  /// Lists the seasons of a show.
+  /// </summary>
+  /// <param name="tmdbId">The show's TMDB identifier.</param>
+  /// <param name="language">Optional TMDB language code.</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <response code="200">The seasons.</response>
+  /// <response code="503">TMDB is not configured or unreachable.</response>
+  /// <returns>The show's seasons.</returns>
+  [HttpGet("Seasons/{tmdbId:int}")]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+  public async Task<ActionResult<IReadOnlyList<Season>>> Seasons(
+    int tmdbId,
+    [FromQuery] string? language,
+    CancellationToken cancellationToken)
+  {
+    try
+    {
+      var seasons = await _tmdbClient.GetSeasonsAsync(tmdbId, Normalize(language), cancellationToken).ConfigureAwait(false);
+      return Ok(seasons);
+    }
+    catch (InvalidOperationException ex)
+    {
+      return NotConfigured(ex);
+    }
+    catch (HttpRequestException ex)
+    {
+      return Upstream(ex);
+    }
+  }
+
   private static string Normalize(string? language)
     => string.IsNullOrWhiteSpace(language) ? DefaultLanguage : language;
 
