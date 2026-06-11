@@ -1,8 +1,11 @@
 using System;
+using System.Linq;
+using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 
 namespace Jellyfin.Plugin.JellyCrowd.Services;
 
@@ -54,11 +57,53 @@ public sealed class PluginPageRegistrationService : IHostedService
       _logger.LogWarning(ex, "Failed to register the Jelly Crowd page with Plugin Pages.");
     }
 
+    try
+    {
+      RegisterHeaderInjection();
+    }
+#pragma warning disable CA1031 // Header injection is optional and must never break startup.
+    catch (Exception ex)
+#pragma warning restore CA1031
+    {
+      _logger.LogInformation(ex, "Header injection not registered (File Transformation unavailable?).");
+    }
+
     return Task.CompletedTask;
   }
 
   /// <inheritdoc />
   public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+  private void RegisterHeaderInjection()
+  {
+    var assembly = AssemblyLoadContext.All
+      .SelectMany(context => context.Assemblies)
+      .FirstOrDefault(a => a.FullName?.Contains(".FileTransformation", StringComparison.Ordinal) == true);
+    if (assembly is null)
+    {
+      _logger.LogInformation("File Transformation is not installed; Jelly Crowd header injection skipped.");
+      return;
+    }
+
+    var pluginInterface = assembly.GetType("Jellyfin.Plugin.FileTransformation.PluginInterface");
+    var register = pluginInterface?.GetMethod("RegisterTransformation");
+    if (register is null)
+    {
+      return;
+    }
+
+    var payload = new JObject
+    {
+      ["id"] = "a1994160-4ea2-4d81-bd3c-ffe825700d99",
+      ["fileNamePattern"] = "index.html",
+      ["callbackAssembly"] = typeof(TransformationPatches).Assembly.FullName,
+      ["callbackClass"] = typeof(TransformationPatches).FullName,
+      ["callbackMethod"] = nameof(TransformationPatches.InjectHeader)
+    };
+
+    register.Invoke(null, new object?[] { payload });
+    _logger.LogInformation("Registered Jelly Crowd header injection with File Transformation.");
+  }
 
   private static Type? FindType(string fullName)
   {

@@ -1,5 +1,7 @@
 {
   "app_title": "Jelly Crowd",
+  "nav_catalog": "Catalog",
+  "nav_requests": "My requests",
   "search_placeholder": "Search movies & shows…",
   "search_button": "Search",
   "trending_title": "Trending this week",
