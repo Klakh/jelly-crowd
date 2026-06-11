@@ -6,6 +6,15 @@
     "overview": "Browse a TMDB catalog, request titles through an admin approval queue, and enforce per-user disk quotas.",
     "owner": "Klakh",
     "category": "General",
-    "versions": []
+    "versions": [
+      {
+        "version": "0.5.0.0",
+        "changelog": "Release v0.5.0",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Klakh/jelly-crowd/releases/download/v0.5.0/jelly-crowd-v0.5.0.zip",
+        "checksum": "39eb1ea34ea94fcbfc1e2226a1667651",
+        "timestamp": "2026-06-11T19:32:32.0000000Z"
+      }
+    ]
   }
 ]
