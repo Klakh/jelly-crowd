@@ -17,10 +17,11 @@ public sealed class PluginPageRegistrationService : IHostedService
   private const string PageTypeName = "Jellyfin.Plugin.PluginPages.Library.PluginPage";
   private const string RegisterMethodName = "RegisterPluginPage";
 
-  private const string PageId = "jellycrowd";
-  private const string PageUrl = "JellyCrowd/Web/catalog.html";
-  private const string PageDisplayText = "Jelly Crowd";
-  private const string PageIcon = "movie";
+  private static readonly (string Id, string Url, string DisplayText, string Icon)[] Pages =
+  {
+    ("jellycrowd", "JellyCrowd/Web/catalog.html", "Jelly Crowd", "movie"),
+    ("jellycrowd-requests", "JellyCrowd/Web/requests.html", "My Requests", "playlist_add_check")
+  };
 
   private readonly IServiceProvider _serviceProvider;
   private readonly ILogger<PluginPageRegistrationService> _logger;
@@ -88,22 +89,31 @@ public sealed class PluginPageRegistrationService : IHostedService
     var manager = _serviceProvider.GetService(managerType);
     if (manager is null)
     {
-      _logger.LogInformation("Plugin Pages is present but its manager service is unavailable; page not registered.");
+      _logger.LogInformation("Plugin Pages is present but its manager service is unavailable; pages not registered.");
       return;
     }
 
-    var page = Activator.CreateInstance(pageType);
-    if (page is null)
+    var register = managerType.GetMethod(RegisterMethodName);
+    if (register is null)
     {
       return;
     }
 
-    SetProperty(page, "Id", PageId);
-    SetProperty(page, "Url", PageUrl);
-    SetProperty(page, "DisplayText", PageDisplayText);
-    SetProperty(page, "Icon", PageIcon);
+    foreach (var (id, url, displayText, icon) in Pages)
+    {
+      var page = Activator.CreateInstance(pageType);
+      if (page is null)
+      {
+        continue;
+      }
 
-    managerType.GetMethod(RegisterMethodName)?.Invoke(manager, new[] { page });
-    _logger.LogInformation("Registered the Jelly Crowd catalog page with Plugin Pages.");
+      SetProperty(page, "Id", id);
+      SetProperty(page, "Url", url);
+      SetProperty(page, "DisplayText", displayText);
+      SetProperty(page, "Icon", icon);
+      register.Invoke(manager, new[] { page });
+    }
+
+    _logger.LogInformation("Registered {Count} Jelly Crowd page(s) with Plugin Pages.", Pages.Length);
   }
 }

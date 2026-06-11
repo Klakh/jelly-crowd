@@ -51,6 +51,33 @@
     });
   }
 
+  // Authenticated JSON POST against our API.
+  function apiPost(path, body) {
+    if (window.ApiClient && typeof window.ApiClient.ajax === 'function') {
+      return window.ApiClient.ajax({
+        type: 'POST',
+        url: pluginUrl(path),
+        data: JSON.stringify(body),
+        contentType: 'application/json',
+        dataType: 'json'
+      });
+    }
+
+    return fetch(pluginUrl(path), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      if (!r.ok) {
+        var err = new Error('HTTP ' + r.status);
+        err.status = r.status;
+        throw err;
+      }
+
+      return r.json();
+    });
+  }
+
   function loadStrings() {
     return fetch(pluginUrl('JellyCrowd/Web/strings/' + shortLang() + '.json'))
       .then(function (r) { return r.ok ? r.json() : {}; })
@@ -87,7 +114,36 @@
     title.textContent = lib.formatTitle(item);
     card.appendChild(title);
 
+    if (!item.Available) {
+      var button = document.createElement('button');
+      button.className = 'jellycrowd-request';
+      button.type = 'button';
+      button.textContent = t('request_button');
+      button.addEventListener('click', function () { requestItem(item, button); });
+      card.appendChild(button);
+    }
+
     return card;
+  }
+
+  function requestItem(item, button) {
+    button.disabled = true;
+    button.textContent = t('requesting');
+    apiPost('JellyCrowd/Requests', {
+      TmdbId: item.TmdbId,
+      MediaType: item.MediaType,
+      Title: item.Title,
+      PosterPath: item.PosterPath
+    }).then(function () {
+      button.textContent = t('requested');
+    }).catch(function (error) {
+      if (error && error.status === 409) {
+        button.textContent = t('already_requested');
+      } else {
+        button.disabled = false;
+        button.textContent = t('request_button');
+      }
+    });
   }
 
   function setMessage(text) {

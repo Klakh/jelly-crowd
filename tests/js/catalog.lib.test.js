@@ -41,3 +41,12 @@ test('errorKey maps 503 to the not-configured message', () => {
   assert.strictEqual(lib.errorKey(500), 'error_generic');
   assert.strictEqual(lib.errorKey(undefined), 'error_generic');
 });
+
+test('statusLabelKey handles numeric and string statuses', () => {
+  assert.strictEqual(lib.statusLabelKey(0), 'status_pending');
+  assert.strictEqual(lib.statusLabelKey(1), 'status_approved');
+  assert.strictEqual(lib.statusLabelKey(2), 'status_denied');
+  assert.strictEqual(lib.statusLabelKey(3), 'status_available');
+  assert.strictEqual(lib.statusLabelKey('Approved'), 'status_approved');
+  assert.strictEqual(lib.statusLabelKey('weird'), 'status_pending');
+});

@@ -35,10 +35,22 @@
     return status === 503 ? 'error_not_configured' : 'error_generic';
   }
 
+  // Map a request status (numeric enum or string, as serialized by the API) to its i18n key.
+  function statusLabelKey(status) {
+    var map = {
+      '0': 'status_pending', 'pending': 'status_pending',
+      '1': 'status_approved', 'approved': 'status_approved',
+      '2': 'status_denied', 'denied': 'status_denied',
+      '3': 'status_available', 'available': 'status_available'
+    };
+    return map[String(status).toLowerCase()] || 'status_pending';
+  }
+
   return {
     pickLang: pickLang,
     yearOf: yearOf,
     formatTitle: formatTitle,
-    errorKey: errorKey
+    errorKey: errorKey,
+    statusLabelKey: statusLabelKey
   };
 });

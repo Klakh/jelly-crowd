@@ -86,3 +86,41 @@
   font-size: 0.9em;
   line-height: 1.3;
 }
+
+.jellycrowd-request {
+  margin-top: 0.5em;
+  padding: 0.4em 0.75em;
+  border: none;
+  border-radius: 0.3em;
+  cursor: pointer;
+  background: #00a4dc;
+  color: #fff;
+}
+
+.jellycrowd-request:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.jellycrowd-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.jellycrowd-request-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0.6em 0.8em;
+  border-radius: 0.4em;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.jellycrowd-status {
+  font-size: 0.85em;
+  padding: 0.15em 0.6em;
+  border-radius: 0.3em;
+  background: rgba(255, 255, 255, 0.12);
+}

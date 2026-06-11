@@ -56,6 +56,12 @@
             </button>
           </div>
         </form>
+
+        <div class="verticalSection">
+          <h2 id="jcAdminPendingTitle" class="sectionTitle">Pending requests</h2>
+          <p id="jcAdminPendingEmpty" class="fieldDescription" hidden></p>
+          <div id="jcAdminPending"></div>
+        </div>
       </div>
     </div>
     <script type="text/javascript">
@@ -95,6 +101,91 @@
           e.preventDefault();
           return false;
         });
+    </script>
+    <script type="text/javascript">
+      (function () {
+        var SUPPORTED = ['en', 'fr'];
+        var strings = {};
+
+        function lang() {
+          var code = (navigator.language || 'en').slice(0, 2).toLowerCase();
+          return SUPPORTED.indexOf(code) >= 0 ? code : 'en';
+        }
+
+        function t(key) {
+          return Object.prototype.hasOwnProperty.call(strings, key) ? strings[key] : key;
+        }
+
+        function isPending(request) {
+          return request.Status === 0 || request.Status === 'Pending';
+        }
+
+        function loadStrings() {
+          return ApiClient.ajax({ type: 'GET', url: ApiClient.getUrl('JellyCrowd/Web/strings/' + lang() + '.json'), dataType: 'json' })
+            .then(function (data) { strings = data || {}; })
+            .catch(function () { strings = {}; });
+        }
+
+        function decide(id, action) {
+          ApiClient.ajax({ type: 'POST', url: ApiClient.getUrl('JellyCrowd/Requests/' + id + '/' + action) })
+            .then(load)
+            .catch(function () { /* ignore */ });
+        }
+
+        function render(requests) {
+          var pending = (requests || []).filter(isPending);
+          document.querySelector('#jcAdminPendingTitle').textContent = t('admin_pending_title');
+          var container = document.querySelector('#jcAdminPending');
+          var empty = document.querySelector('#jcAdminPendingEmpty');
+          container.innerHTML = '';
+
+          if (pending.length === 0) {
+            empty.textContent = t('admin_no_pending');
+            empty.hidden = false;
+            return;
+          }
+
+          empty.hidden = true;
+          pending.forEach(function (request) {
+            var row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.alignItems = 'center';
+            row.style.gap = '1em';
+            row.style.padding = '0.5em 0';
+
+            var label = document.createElement('span');
+            label.style.flex = '1';
+            label.textContent = request.Title;
+            row.appendChild(label);
+
+            var approve = document.createElement('button');
+            approve.type = 'button';
+            approve.className = 'raised emby-button';
+            approve.textContent = t('admin_approve');
+            approve.addEventListener('click', function () { decide(request.Id, 'Approve'); });
+            row.appendChild(approve);
+
+            var deny = document.createElement('button');
+            deny.type = 'button';
+            deny.className = 'raised emby-button';
+            deny.textContent = t('admin_deny');
+            deny.addEventListener('click', function () { decide(request.Id, 'Deny'); });
+            row.appendChild(deny);
+
+            container.appendChild(row);
+          });
+        }
+
+        function load() {
+          ApiClient.ajax({ type: 'GET', url: ApiClient.getUrl('JellyCrowd/Requests'), dataType: 'json' })
+            .then(render)
+            .catch(function () { /* ignore */ });
+        }
+
+        document.querySelector('#JellyCrowdConfigPage').addEventListener('pageshow', function () {
+          loadStrings().then(load);
+        });
+      })();
     </script>
   </div>
 </body>

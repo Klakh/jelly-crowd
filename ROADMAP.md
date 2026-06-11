@@ -7,12 +7,12 @@ Légende : ☐ à faire · ☑ fait · ◐ en cours
 
 ---
 
-## 📍 État actuel (point de reprise) — au 2026-06-06
+## 📍 État actuel (point de reprise) — au 2026-06-11
 
-- **Version publiée** : `v0.1.4` (releases auto sur GitHub `Klakh/jelly-crowd`). Branche `main`, CI **verte**.
-- **Fait** : M0 (scaffold + plugin qui charge) et **M1 côté code** (catalogue TMDB browse/recherche + page user + i18n en/fr + enregistrement Plugin Pages).
-- **En cours / prochaine action** : **M2 — Requêtes** (pas encore commencé).
-- **Bloqué côté agent (à faire par l'utilisateur)** : **vérifier l'UID M1 sur une instance Jellyfin live** (voir M1, dernière case). C'est le seul élément non validé.
+- **Version publiée** : releases auto sur GitHub `Klakh/jelly-crowd` (dernière `v0.1.x`). Branche `main`, CI **verte**.
+- **Fait (code)** : M0, **M1** (catalogue TMDB + page user + i18n + Plugin Pages) et **M2** (requêtes : store JSON, RequestsController, bouton Demander, page « Mes requêtes », file d'approbation admin).
+- **En cours / prochaine action** : **M3 — Disponibilité bibliothèque** (`LibraryMatcher` + flag `available` + `ReconcileTask`).
+- **Bloqué côté agent (à faire par l'utilisateur)** : **vérifier M1 + M2 sur une instance Jellyfin live** (voir dernières cases de M1 et M2). Seuls éléments non validés.
 
 ### Ce qui tourne déjà (vérifié en CI)
 - Pipeline complet : **CI** (`build.yml` : restore → build Release → `dotnet test` → tests JS `node --test` → package `.zip`) + **Release** (`release.yml` : versionning auto par mot-clé de commit `[major]`/`[minor]`/patch → tag + GitHub Release).
@@ -57,15 +57,15 @@ Objectif : parcourir et chercher le catalogue TMDB depuis une page user.
   3. Vérifier que la page « Jelly Crowd » apparaît et liste films/séries (browse + recherche).
   4. Si la page n'apparaît pas : lire le log `PluginPageRegistrationService` et **ajuster `PageUrl`** dans `Services/PluginPageRegistrationService.cs`.
 
-## M2 — Requêtes (file d'attente admin)  ☐ ← PROCHAINE ÉTAPE
+## M2 — Requêtes (file d'attente admin)  ◐ (code fait, reste la vérif live)
 
 Objectif : créer des requêtes et les gérer côté admin.
 
-- ☐ `RequestStore` (SQLite via `Microsoft.Data.Sqlite`, dans le data path du plugin) : table `requests` (id, userId, tmdbId, type, titre, statut, dates...).
-- ☐ `RequestsController` : `create` (user), `list` (user/admin), `approve`/`deny` (admin) + tests (nominal + erreurs + autorisations).
-- ☐ Bouton « Demander » sur la fiche + page user « Mes requêtes » (logique pure dans un `*.lib.js` testé).
-- ☐ File d'approbation dans la page de config admin (liste + approuver/refuser).
-- ☐ **Vérif** : un user crée une requête, l'admin la voit et l'approuve/refuse, statut mis à jour.
+- ☑ `IRequestStore` + `JsonRequestStore` — **store JSON** (fichier atomique dans le data path du plugin), choisi plutôt que SQLite pour éviter une dépendance native (volume de requêtes faible). Champs : id, userId, tmdbId, type, titre, poster, statut, dates, décideur.
+- ☑ `RequestsController` : `Create`/`Mine` (user, `DefaultAuthorization`), `All`/`Approve`/`Deny` (admin, `RequiresElevation`). Doublon → 409, invalide → 400, introuvable → 404. + `ICurrentUserAccessor` (sur `IAuthorizationContext`). Tests nominal + erreurs.
+- ☑ Bouton « Demander » sur les cartes du catalogue + page user « Mes requêtes » (`requests.html`/`requests.js`), logique pure (`statusLabelKey`) testée dans `tests/js`.
+- ☑ File d'approbation dans la page de config admin (liste des `Pending` + Approuver/Refuser), i18n.
+- ☐ **Vérif (instance live)** : un user crée une requête depuis le catalogue, l'admin la voit dans la config et l'approuve/refuse, le statut se met à jour dans « Mes requêtes ».
 
 ## M3 — Disponibilité bibliothèque  ☐
 
