@@ -25,16 +25,19 @@ public class CatalogController : ControllerBase
   private const string DefaultLanguage = "en-US";
 
   private readonly ITmdbClient _tmdbClient;
+  private readonly ILibraryMatcher _libraryMatcher;
   private readonly ILogger<CatalogController> _logger;
 
   /// <summary>
   /// Initializes a new instance of the <see cref="CatalogController"/> class.
   /// </summary>
   /// <param name="tmdbClient">The TMDB client.</param>
+  /// <param name="libraryMatcher">The library matcher used to flag already-available titles.</param>
   /// <param name="logger">The logger.</param>
-  public CatalogController(ITmdbClient tmdbClient, ILogger<CatalogController> logger)
+  public CatalogController(ITmdbClient tmdbClient, ILibraryMatcher libraryMatcher, ILogger<CatalogController> logger)
   {
     _tmdbClient = tmdbClient;
+    _libraryMatcher = libraryMatcher;
     _logger = logger;
   }
 
@@ -117,7 +120,13 @@ public class CatalogController : ControllerBase
     try
     {
       var item = await _tmdbClient.GetDetailsAsync(mediaType, tmdbId, Normalize(language), cancellationToken).ConfigureAwait(false);
-      return item is null ? NotFound() : Ok(item);
+      if (item is null)
+      {
+        return NotFound();
+      }
+
+      item.Available = _libraryMatcher.Exists(item.MediaType, item.TmdbId);
+      return Ok(item);
     }
     catch (InvalidOperationException ex)
     {
@@ -138,6 +147,11 @@ public class CatalogController : ControllerBase
     try
     {
       var items = await action().ConfigureAwait(false);
+      foreach (var item in items)
+      {
+        item.Available = _libraryMatcher.Exists(item.MediaType, item.TmdbId);
+      }
+
       return Ok(items);
     }
     catch (InvalidOperationException ex)

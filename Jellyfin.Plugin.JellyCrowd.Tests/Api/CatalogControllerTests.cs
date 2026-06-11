@@ -18,7 +18,14 @@ namespace Jellyfin.Plugin.JellyCrowd.Tests.Api;
 public class CatalogControllerTests
 {
   private static CatalogController CreateController(ITmdbClient client)
-    => new(client, NullLogger<CatalogController>.Instance);
+    => new(client, new FakeLibraryMatcher(), NullLogger<CatalogController>.Instance);
+
+  private sealed class FakeLibraryMatcher : ILibraryMatcher
+  {
+    public bool Result { get; init; }
+
+    public bool Exists(string mediaType, int tmdbId) => Result;
+  }
 
   [Fact]
   public async Task GetTrending_ReturnsOkWithItems()

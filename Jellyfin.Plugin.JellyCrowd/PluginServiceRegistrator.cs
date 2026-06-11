@@ -17,6 +17,7 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
   public void RegisterServices(IServiceCollection serviceCollection, IServerApplicationHost applicationHost)
   {
     serviceCollection.AddSingleton<ITmdbClient, TmdbClient>();
+    serviceCollection.AddSingleton<ILibraryMatcher, LibraryMatcher>();
     serviceCollection.AddSingleton<ICurrentUserAccessor, CurrentUserAccessor>();
     serviceCollection.AddSingleton<IRequestStore>(
       _ => new JsonRequestStore(Path.Combine(Plugin.Instance!.DataFolderPath, RequestsFileName)));

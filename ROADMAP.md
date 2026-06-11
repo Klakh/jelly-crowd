@@ -10,9 +10,9 @@ Légende : ☐ à faire · ☑ fait · ◐ en cours
 ## 📍 État actuel (point de reprise) — au 2026-06-11
 
 - **Version publiée** : releases auto sur GitHub `Klakh/jelly-crowd` (dernière `v0.1.x`). Branche `main`, CI **verte**.
-- **Fait (code)** : M0, **M1** (catalogue TMDB + page user + i18n + Plugin Pages) et **M2** (requêtes : store JSON, RequestsController, bouton Demander, page « Mes requêtes », file d'approbation admin).
-- **En cours / prochaine action** : **M3 — Disponibilité bibliothèque** (`LibraryMatcher` + flag `available` + `ReconcileTask`).
-- **Bloqué côté agent (à faire par l'utilisateur)** : **vérifier M1 + M2 sur une instance Jellyfin live** (voir dernières cases de M1 et M2). Seuls éléments non validés.
+- **Fait (code)** : M0, **M1** (catalogue + modal détails + Plugin Pages), **M2** (requêtes : store JSON, RequestsController, bouton Demander, « Mes requêtes », file admin) et **M3** (`LibraryMatcher` + flag `Available` au catalogue + `ReconcileTask`).
+- **En cours / prochaine action** : **M4 — Quotas disque par utilisateur**.
+- **Bloqué côté agent (à faire par l'utilisateur)** : **vérifier M1/M2/M3 sur une instance Jellyfin live**. M1+M2 déjà validés par l'utilisateur ; reste à valider M3 (badge « Disponible » + tâche de réconciliation).
 
 ### Ce qui tourne déjà (vérifié en CI)
 - Pipeline complet : **CI** (`build.yml` : restore → build Release → `dotnet test` → tests JS `node --test` → package `.zip`) + **Release** (`release.yml` : versionning auto par mot-clé de commit `[major]`/`[minor]`/patch → tag + GitHub Release).
@@ -67,14 +67,14 @@ Objectif : créer des requêtes et les gérer côté admin.
 - ☑ File d'approbation dans la page de config admin (liste des `Pending` + Approuver/Refuser), i18n.
 - ☐ **Vérif (instance live)** : un user crée une requête depuis le catalogue, l'admin la voit dans la config et l'approuve/refuse, le statut se met à jour dans « Mes requêtes ».
 
-## M3 — Disponibilité bibliothèque  ☐
+## M3 — Disponibilité bibliothèque  ◐ (code fait, reste la vérif live)
 
 Objectif : savoir ce qui existe déjà et résoudre automatiquement les requêtes satisfaites.
 
-- ☐ `LibraryMatcher` : recherche d'un item par `ProviderId` Tmdb via `ILibraryManager`.
-- ☐ Flag `available` ajouté aux résultats du catalogue (le champ `CatalogItem.Available` existe déjà).
-- ☐ `ReconcileTask` (`IScheduledTask`) : lie les requêtes approuvées aux nouveaux items, passe en `available`.
-- ☐ **Vérif** : un titre déjà en biblio est marqué « disponible » ; une requête se résout quand l'item arrive.
+- ☑ `ILibraryMatcher`/`LibraryMatcher` : recherche d'un item par `HasAnyProviderId[Tmdb]` via `ILibraryManager.GetItemList` (movie→`Movie`, tv→`Series`). Tests (Moq).
+- ☑ Flag `Available` renseigné sur les résultats du catalogue (`CatalogController` enrichit Trending/Search/Details). Le badge + le modal l'affichent déjà.
+- ☑ `ReconcileTask` (`IScheduledTask`, intervalle 6 h, auto-découverte) : passe les requêtes `Approved` en `Available` quand le média est en biblio. Tests.
+- ☐ **Vérif (instance live)** : un titre déjà présent apparaît « Disponible » dans le catalogue ; après ajout d'un média demandé en biblio, la tâche planifiée « Jelly Crowd: reconcile requests » le bascule en `Available`.
 
 ## M4 — Quotas disque par utilisateur  ☐
 
