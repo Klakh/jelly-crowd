@@ -23,6 +23,7 @@
         <div class="jcTabBar">
           <button type="button" id="jcTabSettings" class="jcTab jcTabActive">Settings</button>
           <button type="button" id="jcTabQuotas" class="jcTab">User quotas</button>
+          <button type="button" id="jcTabNotifications" class="jcTab">Notifications</button>
           <button type="button" id="jcTabRequests" class="jcTab">Requests</button>
         </div>
 
@@ -69,6 +70,53 @@
             </div>
           </div>
 
+          <div id="jcPaneNotifications" class="jcTabPane" style="display:none">
+            <div class="inputContainer">
+              <label class="inputLabel inputLabelUnfocused" for="DiscordWebhookUrl">Discord webhook URL</label>
+              <input id="DiscordWebhookUrl" type="text" is="emby-input" />
+              <div class="fieldDescription">Posts request events to this Discord channel. Leave empty to disable.</div>
+            </div>
+
+            <div class="inputContainer">
+              <label class="inputLabel inputLabelUnfocused" for="SmtpHost">SMTP host</label>
+              <input id="SmtpHost" type="text" is="emby-input" />
+              <div class="fieldDescription">Leave empty to disable email notifications.</div>
+            </div>
+
+            <div class="inputContainer">
+              <label class="inputLabel inputLabelUnfocused" for="SmtpPort">SMTP port</label>
+              <input id="SmtpPort" type="number" is="emby-input" min="1" step="1" />
+            </div>
+
+            <div class="checkboxContainer checkboxContainer-withDescription">
+              <label class="emby-checkbox-label">
+                <input id="SmtpUseSsl" type="checkbox" is="emby-checkbox" />
+                <span>Use SSL/TLS</span>
+              </label>
+            </div>
+
+            <div class="inputContainer">
+              <label class="inputLabel inputLabelUnfocused" for="SmtpUsername">SMTP username</label>
+              <input id="SmtpUsername" type="text" is="emby-input" />
+            </div>
+
+            <div class="inputContainer">
+              <label class="inputLabel inputLabelUnfocused" for="SmtpPassword">SMTP password</label>
+              <input id="SmtpPassword" type="password" is="emby-input" />
+            </div>
+
+            <div class="inputContainer">
+              <label class="inputLabel inputLabelUnfocused" for="SmtpFromAddress">From address</label>
+              <input id="SmtpFromAddress" type="text" is="emby-input" />
+            </div>
+
+            <div class="inputContainer">
+              <label class="inputLabel inputLabelUnfocused" for="NotificationEmailTo">Notification recipient</label>
+              <input id="NotificationEmailTo" type="text" is="emby-input" />
+              <div class="fieldDescription">Email address that receives request notifications (e.g. the admin/ops mailbox).</div>
+            </div>
+          </div>
+
           <div>
             <button is="emby-button" type="submit" class="raised button-submit block emby-button">
               <span>Save</span>
@@ -98,8 +146,10 @@
         document.querySelector('#jcPaneRequests').style.display = isRequests ? '' : 'none';
         document.querySelector('#jcPaneSettings').style.display = tab === 'settings' ? '' : 'none';
         document.querySelector('#jcPaneQuotas').style.display = tab === 'quotas' ? '' : 'none';
+        document.querySelector('#jcPaneNotifications').style.display = tab === 'notifications' ? '' : 'none';
         document.querySelector('#jcTabSettings').classList.toggle('jcTabActive', tab === 'settings');
         document.querySelector('#jcTabQuotas').classList.toggle('jcTabActive', tab === 'quotas');
+        document.querySelector('#jcTabNotifications').classList.toggle('jcTabActive', tab === 'notifications');
         document.querySelector('#jcTabRequests').classList.toggle('jcTabActive', isRequests);
       }
 
@@ -148,6 +198,7 @@
 
       document.querySelector('#jcTabSettings').addEventListener('click', function () { jcActivateTab('settings'); });
       document.querySelector('#jcTabQuotas').addEventListener('click', function () { jcActivateTab('quotas'); });
+      document.querySelector('#jcTabNotifications').addEventListener('click', function () { jcActivateTab('notifications'); });
       document.querySelector('#jcTabRequests').addEventListener('click', function () { jcActivateTab('requests'); });
 
       document.querySelector('#JellyCrowdConfigPage')
@@ -161,6 +212,14 @@
             document.querySelector('#RequireApproval').checked = !!config.RequireApproval;
             document.querySelector('#EstimatedMovieSizeGiB').value = (config.EstimatedMovieSizeBytes || 0) / gib;
             document.querySelector('#EstimatedEpisodeSizeGiB').value = (config.EstimatedEpisodeSizeBytes || 0) / gib;
+            document.querySelector('#DiscordWebhookUrl').value = config.DiscordWebhookUrl || '';
+            document.querySelector('#SmtpHost').value = config.SmtpHost || '';
+            document.querySelector('#SmtpPort').value = config.SmtpPort || 587;
+            document.querySelector('#SmtpUseSsl').checked = !!config.SmtpUseSsl;
+            document.querySelector('#SmtpUsername').value = config.SmtpUsername || '';
+            document.querySelector('#SmtpPassword').value = config.SmtpPassword || '';
+            document.querySelector('#SmtpFromAddress').value = config.SmtpFromAddress || '';
+            document.querySelector('#NotificationEmailTo').value = config.NotificationEmailTo || '';
             buildQuotaOverrides(config);
             Dashboard.hideLoadingMsg();
           });
@@ -176,6 +235,14 @@
             config.RequireApproval = document.querySelector('#RequireApproval').checked;
             config.EstimatedMovieSizeBytes = Math.round(parseFloat(document.querySelector('#EstimatedMovieSizeGiB').value || '0') * gib);
             config.EstimatedEpisodeSizeBytes = Math.round(parseFloat(document.querySelector('#EstimatedEpisodeSizeGiB').value || '0') * gib);
+            config.DiscordWebhookUrl = document.querySelector('#DiscordWebhookUrl').value;
+            config.SmtpHost = document.querySelector('#SmtpHost').value;
+            config.SmtpPort = parseInt(document.querySelector('#SmtpPort').value || '587', 10);
+            config.SmtpUseSsl = document.querySelector('#SmtpUseSsl').checked;
+            config.SmtpUsername = document.querySelector('#SmtpUsername').value;
+            config.SmtpPassword = document.querySelector('#SmtpPassword').value;
+            config.SmtpFromAddress = document.querySelector('#SmtpFromAddress').value;
+            config.NotificationEmailTo = document.querySelector('#NotificationEmailTo').value;
             config.QuotaOverrides = collectQuotaOverrides();
             ApiClient.updatePluginConfiguration(JellyCrowdConfig.pluginUniqueId, config).then(function (result) {
               Dashboard.processPluginConfigurationUpdateResult(result);
@@ -226,6 +293,7 @@
         function applyLabels() {
           document.querySelector('#jcTabSettings').textContent = t('tab_settings');
           document.querySelector('#jcTabQuotas').textContent = t('tab_quotas');
+          document.querySelector('#jcTabNotifications').textContent = t('tab_notifications');
           document.querySelector('#jcTabRequests').textContent = t('tab_requests');
           document.querySelector('#jcQuotaOverridesTitle').textContent = t('admin_quota_title');
           document.querySelector('#jcQuotaOverridesHint').textContent = t('admin_quota_hint');

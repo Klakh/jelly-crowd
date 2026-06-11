@@ -36,5 +36,6 @@
   "admin_quota_hint": "Leave empty to use the default quota. 0 means unlimited.",
   "tab_settings": "Settings",
   "tab_quotas": "User quotas",
+  "tab_notifications": "Notifications",
   "tab_requests": "Requests"
 }

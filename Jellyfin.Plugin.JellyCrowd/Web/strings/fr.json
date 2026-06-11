@@ -36,5 +36,6 @@
   "admin_quota_hint": "Laisser vide pour le quota par défaut. 0 = illimité.",
   "tab_settings": "Réglages",
   "tab_quotas": "Quotas utilisateurs",
+  "tab_notifications": "Notifications",
   "tab_requests": "Demandes"
 }
