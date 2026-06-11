@@ -17,10 +17,12 @@ public sealed class PluginPageRegistrationService : IHostedService
   private const string PageTypeName = "Jellyfin.Plugin.PluginPages.Library.PluginPage";
   private const string RegisterMethodName = "RegisterPluginPage";
 
+  // URLs must start with '/': Plugin Pages only resolves them via ApiClient.getUrl (honoring the
+  // server base path) when they are root-relative; otherwise the fetch 404s against /web/.
   private static readonly (string Id, string Url, string DisplayText, string Icon)[] Pages =
   {
-    ("jellycrowd", "JellyCrowd/Web/catalog.html", "Jelly Crowd", "movie"),
-    ("jellycrowd-requests", "JellyCrowd/Web/requests.html", "My Requests", "playlist_add_check")
+    ("jellycrowd", "/JellyCrowd/Web/catalog.html", "Jelly Crowd", "movie"),
+    ("jellycrowd-requests", "/JellyCrowd/Web/requests.html", "My Requests", "playlist_add_check")
   };
 
   private readonly IServiceProvider _serviceProvider;
