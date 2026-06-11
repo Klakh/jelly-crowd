@@ -19,6 +19,7 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
     serviceCollection.AddSingleton<ITmdbClient, TmdbClient>();
     serviceCollection.AddSingleton<ILibraryMatcher, LibraryMatcher>();
     serviceCollection.AddSingleton<ICurrentUserAccessor, CurrentUserAccessor>();
+    serviceCollection.AddSingleton<INotificationService, NotificationService>();
     serviceCollection.AddSingleton<IRequestStore>(
       _ => new JsonRequestStore(Path.Combine(Plugin.Instance!.DataFolderPath, RequestsFileName)));
     serviceCollection.AddSingleton<IQuotaService>(sp => new QuotaService(

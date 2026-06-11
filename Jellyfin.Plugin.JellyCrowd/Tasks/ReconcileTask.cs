@@ -18,6 +18,7 @@ public sealed class ReconcileTask : IScheduledTask
 {
   private readonly IRequestStore _store;
   private readonly ILibraryMatcher _libraryMatcher;
+  private readonly INotificationService _notificationService;
   private readonly ILogger<ReconcileTask> _logger;
 
   /// <summary>
@@ -25,11 +26,13 @@ public sealed class ReconcileTask : IScheduledTask
   /// </summary>
   /// <param name="store">The request store.</param>
   /// <param name="libraryMatcher">The library matcher.</param>
+  /// <param name="notificationService">The notification service.</param>
   /// <param name="logger">The logger.</param>
-  public ReconcileTask(IRequestStore store, ILibraryMatcher libraryMatcher, ILogger<ReconcileTask> logger)
+  public ReconcileTask(IRequestStore store, ILibraryMatcher libraryMatcher, INotificationService notificationService, ILogger<ReconcileTask> logger)
   {
     _store = store;
     _libraryMatcher = libraryMatcher;
+    _notificationService = notificationService;
     _logger = logger;
   }
 
@@ -62,6 +65,7 @@ public sealed class ReconcileTask : IScheduledTask
       if (_libraryMatcher.Exists(request.MediaType, request.TmdbId))
       {
         await _store.UpdateStatusAsync(request.Id, RequestStatus.Available, request.DecidedBy ?? Guid.Empty, cancellationToken).ConfigureAwait(false);
+        await _notificationService.NotifyRequestEventAsync(request, NotificationEvent.Available, cancellationToken).ConfigureAwait(false);
         resolved++;
       }
 

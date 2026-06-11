@@ -24,6 +24,14 @@ public class PluginConfiguration : BasePluginConfiguration
     RequireApproval = true;
     EstimatedMovieSizeBytes = 4L * 1024 * 1024 * 1024; // 4 GiB
     EstimatedEpisodeSizeBytes = 1L * 1024 * 1024 * 1024; // 1 GiB
+    DiscordWebhookUrl = string.Empty;
+    SmtpHost = string.Empty;
+    SmtpPort = 587;
+    SmtpUseSsl = true;
+    SmtpUsername = string.Empty;
+    SmtpPassword = string.Empty;
+    SmtpFromAddress = string.Empty;
+    NotificationEmailTo = string.Empty;
   }
 
   /// <summary>
@@ -55,4 +63,44 @@ public class PluginConfiguration : BasePluginConfiguration
   /// Gets the per-user quota overrides. A user not listed here uses <see cref="DefaultUserQuotaBytes"/>.
   /// </summary>
   public Collection<UserQuotaOverride> QuotaOverrides { get; } = new();
+
+  /// <summary>
+  /// Gets or sets the Discord webhook URL used for request notifications. Empty disables Discord.
+  /// </summary>
+  public string DiscordWebhookUrl { get; set; }
+
+  /// <summary>
+  /// Gets or sets the SMTP server host for email notifications. Empty disables email.
+  /// </summary>
+  public string SmtpHost { get; set; }
+
+  /// <summary>
+  /// Gets or sets the SMTP server port.
+  /// </summary>
+  public int SmtpPort { get; set; }
+
+  /// <summary>
+  /// Gets or sets a value indicating whether SMTP uses SSL/TLS.
+  /// </summary>
+  public bool SmtpUseSsl { get; set; }
+
+  /// <summary>
+  /// Gets or sets the SMTP username (empty for unauthenticated relays).
+  /// </summary>
+  public string SmtpUsername { get; set; }
+
+  /// <summary>
+  /// Gets or sets the SMTP password.
+  /// </summary>
+  public string SmtpPassword { get; set; }
+
+  /// <summary>
+  /// Gets or sets the "from" address for notification emails.
+  /// </summary>
+  public string SmtpFromAddress { get; set; }
+
+  /// <summary>
+  /// Gets or sets the recipient address for notification emails (typically the admin/ops mailbox).
+  /// </summary>
+  public string NotificationEmailTo { get; set; }
 }

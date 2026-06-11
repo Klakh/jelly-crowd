@@ -36,7 +36,7 @@ public sealed class ReconcileTaskTests : IDisposable
   public async Task Execute_MarksApprovedAvailable_WhenInLibrary()
   {
     var id = await SeedApprovedAsync();
-    var task = new ReconcileTask(_store, new StubMatcher(true), NullLogger<ReconcileTask>.Instance);
+    var task = new ReconcileTask(_store, new StubMatcher(true), new NoopNotificationService(), NullLogger<ReconcileTask>.Instance);
 
     await task.ExecuteAsync(new Progress<double>(), CancellationToken.None);
 
@@ -48,7 +48,7 @@ public sealed class ReconcileTaskTests : IDisposable
   public async Task Execute_LeavesApproved_WhenNotInLibrary()
   {
     var id = await SeedApprovedAsync();
-    var task = new ReconcileTask(_store, new StubMatcher(false), NullLogger<ReconcileTask>.Instance);
+    var task = new ReconcileTask(_store, new StubMatcher(false), new NoopNotificationService(), NullLogger<ReconcileTask>.Instance);
 
     await task.ExecuteAsync(new Progress<double>(), CancellationToken.None);
 
@@ -74,5 +74,11 @@ public sealed class ReconcileTaskTests : IDisposable
     public bool Exists(string mediaType, int tmdbId) => _result;
 
     public long GetSizeBytes(string mediaType, int tmdbId) => 0;
+  }
+
+  private sealed class NoopNotificationService : INotificationService
+  {
+    public Task NotifyRequestEventAsync(RequestRecord request, NotificationEvent notificationEvent, CancellationToken cancellationToken)
+      => Task.CompletedTask;
   }
 }

@@ -21,7 +21,7 @@ public class RequestsControllerTests
 
   private static RequestsController CreateController(IRequestStore store, Guid? userId = null, bool canRequest = true)
   {
-    var controller = new RequestsController(store, new FakeUserAccessor(userId ?? User), new FakeQuotaService(canRequest))
+    var controller = new RequestsController(store, new FakeUserAccessor(userId ?? User), new FakeQuotaService(canRequest), new FakeNotificationService())
     {
       ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
     };
@@ -144,6 +144,12 @@ public class RequestsControllerTests
 
     public Task<bool> CanRequestAsync(Guid userId, string mediaType, CancellationToken cancellationToken)
       => Task.FromResult(_canRequest);
+  }
+
+  private sealed class FakeNotificationService : INotificationService
+  {
+    public Task NotifyRequestEventAsync(RequestRecord request, NotificationEvent notificationEvent, CancellationToken cancellationToken)
+      => Task.CompletedTask;
   }
 
   private sealed class FakeRequestStore : IRequestStore

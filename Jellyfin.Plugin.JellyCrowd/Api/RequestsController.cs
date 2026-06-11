@@ -22,6 +22,7 @@ public class RequestsController : ControllerBase
   private readonly IRequestStore _store;
   private readonly ICurrentUserAccessor _userAccessor;
   private readonly IQuotaService _quotaService;
+  private readonly INotificationService _notificationService;
 
   /// <summary>
   /// Initializes a new instance of the <see cref="RequestsController"/> class.
@@ -29,11 +30,17 @@ public class RequestsController : ControllerBase
   /// <param name="store">The request store.</param>
   /// <param name="userAccessor">The current-user accessor.</param>
   /// <param name="quotaService">The quota service used to enforce per-user limits.</param>
-  public RequestsController(IRequestStore store, ICurrentUserAccessor userAccessor, IQuotaService quotaService)
+  /// <param name="notificationService">The notification service.</param>
+  public RequestsController(
+    IRequestStore store,
+    ICurrentUserAccessor userAccessor,
+    IQuotaService quotaService,
+    INotificationService notificationService)
   {
     _store = store;
     _userAccessor = userAccessor;
     _quotaService = quotaService;
+    _notificationService = notificationService;
   }
 
   /// <summary>
@@ -87,6 +94,7 @@ public class RequestsController : ControllerBase
       },
       cancellationToken).ConfigureAwait(false);
 
+    _ = _notificationService.NotifyRequestEventAsync(created, NotificationEvent.Created, CancellationToken.None);
     return Ok(created);
   }
 
@@ -159,6 +167,13 @@ public class RequestsController : ControllerBase
   {
     var adminId = await _userAccessor.GetUserIdAsync(Request).ConfigureAwait(false);
     var updated = await _store.UpdateStatusAsync(id, status, adminId, cancellationToken).ConfigureAwait(false);
-    return updated is null ? NotFound() : Ok(updated);
+    if (updated is null)
+    {
+      return NotFound();
+    }
+
+    var notificationEvent = status == RequestStatus.Approved ? NotificationEvent.Approved : NotificationEvent.Denied;
+    _ = _notificationService.NotifyRequestEventAsync(updated, notificationEvent, CancellationToken.None);
+    return Ok(updated);
   }
 }
