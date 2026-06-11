@@ -8,6 +8,14 @@
     "category": "General",
     "versions": [
       {
+        "version": "0.5.4.0",
+        "changelog": "Release v0.5.4",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Klakh/jelly-crowd/releases/download/v0.5.4/jelly-crowd-v0.5.4.zip",
+        "checksum": "df665f4bccfcb3dbc361dd8faca484b4",
+        "timestamp": "2026-06-11T20:42:14.0000000Z"
+      },
+      {
         "version": "0.5.3.0",
         "changelog": "Release v0.5.3",
         "targetAbi": "10.11.0.0",
