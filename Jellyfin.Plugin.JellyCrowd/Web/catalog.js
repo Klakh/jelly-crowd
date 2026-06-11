@@ -12,6 +12,7 @@
   var BACKDROP_BASE = 'https://image.tmdb.org/t/p/w780';
   var lib = window.JellyCrowdLib;
   var strings = {};
+  var quotaExceeded = false;
 
   var MIN_YEAR = 1900;
   var MAX_YEAR = new Date().getFullYear();
@@ -92,10 +93,39 @@
 
   // ---------- cards ----------
 
+  function navigateToItem(itemId) {
+    var hash = '#/details?id=' + itemId;
+    if (window.ApiClient && typeof window.ApiClient.serverId === 'function') {
+      hash += '&serverId=' + window.ApiClient.serverId();
+    }
+    window.location.hash = hash;
+  }
+
+  // A disabled "request" button carrying the quota-exceeded explanation.
+  function blockedRequestButton() {
+    var button = document.createElement('button');
+    button.className = 'jellycrowd-request jellycrowd-request-blocked';
+    button.type = 'button';
+    button.disabled = true;
+    button.title = t('quota_full_hint');
+    button.textContent = t('request_button');
+    button.addEventListener('click', function (e) { e.stopPropagation(); });
+    return button;
+  }
+
   function renderCard(item) {
     var card = document.createElement('div');
     card.className = 'jellycrowd-card jellycrowd-card-clickable';
-    card.addEventListener('click', function () { openModal(item); });
+    card.addEventListener('click', function () {
+      if (item.Available && item.JellyfinItemId) {
+        navigateToItem(item.JellyfinItemId);
+      } else {
+        openModal(item);
+      }
+    });
+
+    var posterWrap = document.createElement('div');
+    posterWrap.className = 'jellycrowd-poster-wrap';
 
     if (item.PosterPath) {
       var img = document.createElement('img');
@@ -103,18 +133,18 @@
       img.loading = 'lazy';
       img.alt = item.Title || '';
       img.src = POSTER_BASE + item.PosterPath;
-      card.appendChild(img);
+      posterWrap.appendChild(img);
     } else {
       var placeholder = document.createElement('div');
       placeholder.className = 'jellycrowd-poster jellycrowd-poster-empty';
-      card.appendChild(placeholder);
+      posterWrap.appendChild(placeholder);
     }
 
     if (item.Available) {
       var badge = document.createElement('span');
       badge.className = 'jellycrowd-badge';
       badge.textContent = t('available_badge');
-      card.appendChild(badge);
+      posterWrap.appendChild(badge);
     }
 
     var hover = document.createElement('div');
@@ -122,7 +152,9 @@
     var rating = lib.formatRating(item.VoteAverage);
     var year = lib.yearOf(item);
     hover.textContent = [rating ? '★ ' + rating : '', year].filter(Boolean).join('  ·  ');
-    card.appendChild(hover);
+    posterWrap.appendChild(hover);
+
+    card.appendChild(posterWrap);
 
     var title = document.createElement('div');
     title.className = 'jellycrowd-card-title';
@@ -130,15 +162,19 @@
     card.appendChild(title);
 
     if (!item.Available) {
-      var button = document.createElement('button');
-      button.className = 'jellycrowd-request';
-      button.type = 'button';
-      button.textContent = t('request_button');
-      button.addEventListener('click', function (e) {
-        e.stopPropagation();
-        requestItem(item, button);
-      });
-      card.appendChild(button);
+      if (quotaExceeded) {
+        card.appendChild(blockedRequestButton());
+      } else {
+        var button = document.createElement('button');
+        button.className = 'jellycrowd-request';
+        button.type = 'button';
+        button.textContent = t('request_button');
+        button.addEventListener('click', function (e) {
+          e.stopPropagation();
+          requestItem(item, button);
+        });
+        card.appendChild(button);
+      }
     }
 
     return card;
@@ -151,7 +187,8 @@
       TmdbId: item.TmdbId,
       MediaType: item.MediaType,
       Title: item.Title,
-      PosterPath: item.PosterPath
+      PosterPath: item.PosterPath,
+      ReleaseDate: item.ReleaseDate
     }).then(function () {
       button.textContent = t('requested');
     }).catch(function (error) {
@@ -243,12 +280,16 @@
     content.appendChild(links);
 
     if (!item.Available) {
-      var requestButton = document.createElement('button');
-      requestButton.className = 'jellycrowd-request';
-      requestButton.type = 'button';
-      requestButton.textContent = t('request_button');
-      requestButton.addEventListener('click', function () { requestItem(item, requestButton); });
-      content.appendChild(requestButton);
+      if (quotaExceeded) {
+        content.appendChild(blockedRequestButton());
+      } else {
+        var requestButton = document.createElement('button');
+        requestButton.className = 'jellycrowd-request';
+        requestButton.type = 'button';
+        requestButton.textContent = t('request_button');
+        requestButton.addEventListener('click', function () { requestItem(item, requestButton); });
+        content.appendChild(requestButton);
+      }
     }
 
     body.appendChild(content);
@@ -538,8 +579,15 @@
         search(document.getElementById('jcSearchInput').value.trim());
       });
 
-      loadGenres();
-      loadDiscover();
+      apiGet('JellyCrowd/Quota/Me')
+        .then(function (q) {
+          quotaExceeded = !!(q && !q.Unlimited && q.QuotaBytes > 0 && q.UsedBytes >= q.QuotaBytes);
+        })
+        .catch(function () { /* quota check is best-effort */ })
+        .then(function () {
+          loadGenres();
+          loadDiscover();
+        });
     });
   }
 

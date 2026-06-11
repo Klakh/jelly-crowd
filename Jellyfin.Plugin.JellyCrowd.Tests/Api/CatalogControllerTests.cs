@@ -26,6 +26,8 @@ public class CatalogControllerTests
 
     public bool Exists(string mediaType, int tmdbId) => Result;
 
+    public string? FindItemId(string mediaType, int tmdbId) => Result ? "abc123" : null;
+
     public long GetSizeBytes(string mediaType, int tmdbId) => 0;
   }
 

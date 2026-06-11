@@ -47,6 +47,7 @@
   "quota_storage": "Storage",
   "quota_unlimited": "Unlimited",
   "quota_exceeded": "Quota exceeded",
+  "quota_full_hint": "Quota exceeded — delete some media to free space before requesting more.",
   "admin_quota_title": "Per-user disk quotas (GiB)",
   "admin_quota_hint": "Leave empty to use the default quota. 0 means unlimited.",
   "tab_settings": "Settings",

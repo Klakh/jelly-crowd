@@ -38,6 +38,11 @@ public class RequestRecord
   public string? PosterPath { get; set; }
 
   /// <summary>
+  /// Gets or sets the release/first-air date (ISO string), captured at request time.
+  /// </summary>
+  public string? ReleaseDate { get; set; }
+
+  /// <summary>
   /// Gets or sets the current status.
   /// </summary>
   public RequestStatus Status { get; set; }

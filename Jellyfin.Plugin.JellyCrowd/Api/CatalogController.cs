@@ -125,7 +125,8 @@ public class CatalogController : ControllerBase
         return NotFound();
       }
 
-      item.Available = _libraryMatcher.Exists(item.MediaType, item.TmdbId);
+      item.JellyfinItemId = _libraryMatcher.FindItemId(item.MediaType, item.TmdbId);
+      item.Available = item.JellyfinItemId is not null;
       return Ok(item);
     }
     catch (InvalidOperationException ex)
@@ -233,7 +234,8 @@ public class CatalogController : ControllerBase
       var items = await action().ConfigureAwait(false);
       foreach (var item in items)
       {
-        item.Available = _libraryMatcher.Exists(item.MediaType, item.TmdbId);
+        item.JellyfinItemId = _libraryMatcher.FindItemId(item.MediaType, item.TmdbId);
+        item.Available = item.JellyfinItemId is not null;
       }
 
       return Ok(items);

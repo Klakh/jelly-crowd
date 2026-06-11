@@ -115,6 +115,8 @@ public sealed class QuotaServiceTests : IDisposable
 
     public bool Exists(string mediaType, int tmdbId) => _size > 0;
 
+    public string? FindItemId(string mediaType, int tmdbId) => _size > 0 ? "x" : null;
+
     public long GetSizeBytes(string mediaType, int tmdbId) => _size;
   }
 }

@@ -90,7 +90,8 @@ public class RequestsController : ControllerBase
         TmdbId = dto.TmdbId,
         MediaType = dto.MediaType,
         Title = dto.Title,
-        PosterPath = dto.PosterPath
+        PosterPath = dto.PosterPath,
+        ReleaseDate = dto.ReleaseDate
       },
       cancellationToken).ConfigureAwait(false);
 

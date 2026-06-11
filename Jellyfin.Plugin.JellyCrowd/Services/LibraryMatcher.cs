@@ -26,12 +26,15 @@ public sealed class LibraryMatcher : ILibraryMatcher
   }
 
   /// <inheritdoc />
-  public bool Exists(string mediaType, int tmdbId)
+  public bool Exists(string mediaType, int tmdbId) => FindItemId(mediaType, tmdbId) is not null;
+
+  /// <inheritdoc />
+  public string? FindItemId(string mediaType, int tmdbId)
   {
     var kind = MediaTypeToKind(mediaType);
     if (kind is null)
     {
-      return false;
+      return null;
     }
 
     var query = new InternalItemsQuery
@@ -45,7 +48,8 @@ public sealed class LibraryMatcher : ILibraryMatcher
       Limit = 1
     };
 
-    return _libraryManager.GetItemList(query).Count > 0;
+    var items = _libraryManager.GetItemList(query);
+    return items.Count > 0 ? items[0].Id.ToString("N", CultureInfo.InvariantCulture) : null;
   }
 
   /// <inheritdoc />

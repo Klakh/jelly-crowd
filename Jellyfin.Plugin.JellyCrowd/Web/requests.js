@@ -6,6 +6,7 @@
   'use strict';
 
   var SUPPORTED_LANGS = ['en', 'fr'];
+  var POSTER_BASE = 'https://image.tmdb.org/t/p/w154';
   var lib = window.JellyCrowdLib;
   var strings = {};
 
@@ -60,13 +61,28 @@
     var row = document.createElement('div');
     row.className = 'jellycrowd-request-row';
 
-    var label = document.createElement('span');
-    label.textContent = lib.formatTitle(request);
-    row.appendChild(label);
+    if (request.PosterPath) {
+      var poster = document.createElement('img');
+      poster.className = 'jellycrowd-request-poster';
+      poster.loading = 'lazy';
+      poster.alt = request.Title || '';
+      poster.src = POSTER_BASE + request.PosterPath;
+      row.appendChild(poster);
+    } else {
+      var empty = document.createElement('div');
+      empty.className = 'jellycrowd-request-poster';
+      row.appendChild(empty);
+    }
 
+    var main = document.createElement('div');
+    main.className = 'jellycrowd-request-main';
+    main.textContent = lib.formatTitle(request);
+    row.appendChild(main);
+
+    var key = lib.statusLabelKey(request.Status);
     var status = document.createElement('span');
-    status.className = 'jellycrowd-status';
-    status.textContent = t(lib.statusLabelKey(request.Status));
+    status.className = 'jellycrowd-status jellycrowd-status-' + key.replace('status_', '');
+    status.textContent = t(key);
     row.appendChild(status);
 
     return row;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.JellyCrowd.Services;
@@ -25,6 +26,28 @@ public class LibraryMatcherTests
     var matcher = new LibraryMatcher(manager.Object);
 
     Assert.True(matcher.Exists("movie", 123));
+  }
+
+  [Fact]
+  public void FindItemId_ReturnsHexId_WhenMatched()
+  {
+    var id = Guid.NewGuid();
+    var manager = new Mock<ILibraryManager>();
+    manager.Setup(m => m.GetItemList(It.IsAny<InternalItemsQuery>()))
+      .Returns(new List<BaseItem> { new Movie { Id = id } });
+
+    var matcher = new LibraryMatcher(manager.Object);
+
+    Assert.Equal(id.ToString("N"), matcher.FindItemId("movie", 1));
+  }
+
+  [Fact]
+  public void FindItemId_ReturnsNull_WhenEmpty()
+  {
+    var manager = new Mock<ILibraryManager>();
+    manager.Setup(m => m.GetItemList(It.IsAny<InternalItemsQuery>())).Returns(new List<BaseItem>());
+
+    Assert.Null(new LibraryMatcher(manager.Object).FindItemId("movie", 1));
   }
 
   [Fact]

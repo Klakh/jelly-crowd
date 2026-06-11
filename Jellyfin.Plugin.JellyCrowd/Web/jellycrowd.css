@@ -58,6 +58,10 @@
   flex-direction: column;
 }
 
+.jellycrowd-poster-wrap {
+  position: relative;
+}
+
 .jellycrowd-poster {
   width: 100%;
   aspect-ratio: 2 / 3;
@@ -102,6 +106,12 @@
   cursor: default;
 }
 
+.jellycrowd-request-blocked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(127, 127, 127, 0.4);
+}
+
 .jellycrowd-list {
   display: flex;
   flex-direction: column;
@@ -123,6 +133,31 @@
   padding: 0.15em 0.6em;
   border-radius: 0.3em;
   background: rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
+}
+
+.jellycrowd-status-pending { background: #b58900; color: #fff; }
+.jellycrowd-status-approved { background: #268bd2; color: #fff; }
+.jellycrowd-status-available { background: #2e7d32; color: #fff; }
+.jellycrowd-status-denied { background: #c0392b; color: #fff; }
+
+.jellycrowd-request-poster {
+  width: 2.6em;
+  height: 3.9em;
+  object-fit: cover;
+  border-radius: 0.2em;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.jellycrowd-request-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.jellycrowd-request-year {
+  opacity: 0.7;
+  font-size: 0.85em;
 }
 
 .jellycrowd-card-clickable {

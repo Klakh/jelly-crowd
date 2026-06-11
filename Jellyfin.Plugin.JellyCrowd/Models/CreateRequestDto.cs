@@ -24,4 +24,9 @@ public class CreateRequestDto
   /// Gets or sets the TMDB relative poster path.
   /// </summary>
   public string? PosterPath { get; set; }
+
+  /// <summary>
+  /// Gets or sets the release/first-air date (ISO string).
+  /// </summary>
+  public string? ReleaseDate { get; set; }
 }

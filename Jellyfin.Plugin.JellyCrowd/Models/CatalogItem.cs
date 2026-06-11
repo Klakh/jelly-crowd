@@ -55,6 +55,12 @@ public class CatalogItem
   public bool Available { get; set; }
 
   /// <summary>
+  /// Gets or sets the Jellyfin library item id (32-char hex) when the title is available, else <c>null</c>.
+  /// Lets the UI link straight to the item in Jellyfin.
+  /// </summary>
+  public string? JellyfinItemId { get; set; }
+
+  /// <summary>
   /// Gets or sets the genre names (populated on detail lookups).
   /// </summary>
   public IReadOnlyList<string> Genres { get; set; } = Array.Empty<string>();

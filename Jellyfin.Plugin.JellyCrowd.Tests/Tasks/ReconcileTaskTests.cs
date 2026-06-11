@@ -73,6 +73,8 @@ public sealed class ReconcileTaskTests : IDisposable
 
     public bool Exists(string mediaType, int tmdbId) => _result;
 
+    public string? FindItemId(string mediaType, int tmdbId) => _result ? "x" : null;
+
     public long GetSizeBytes(string mediaType, int tmdbId) => 0;
   }
 
