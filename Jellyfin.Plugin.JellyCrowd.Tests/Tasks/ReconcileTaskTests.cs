@@ -72,5 +72,7 @@ public sealed class ReconcileTaskTests : IDisposable
     public StubMatcher(bool result) => _result = result;
 
     public bool Exists(string mediaType, int tmdbId) => _result;
+
+    public long GetSizeBytes(string mediaType, int tmdbId) => 0;
   }
 }
