@@ -41,7 +41,7 @@ public class RequestsController : ControllerBase
   /// <response code="200">The created request.</response>
   /// <response code="400">The payload was invalid.</response>
   /// <response code="409">The user already has an active request for this title.</response>
-  /// <returns>The created request.</returns>
+  /// <returns>The persisted request with its generated id and pending status.</returns>
   [HttpPost]
   [Authorize(Policy = "DefaultAuthorization")]
   [ProducesResponseType(StatusCodes.Status200OK)]
@@ -85,7 +85,7 @@ public class RequestsController : ControllerBase
   /// </summary>
   /// <param name="cancellationToken">The cancellation token.</param>
   /// <response code="200">The user's requests.</response>
-  /// <returns>The user's requests.</returns>
+  /// <returns>The list of requests owned by the caller, newest first.</returns>
   [HttpGet("Mine")]
   [Authorize(Policy = "DefaultAuthorization")]
   [ProducesResponseType(StatusCodes.Status200OK)]
@@ -101,7 +101,7 @@ public class RequestsController : ControllerBase
   /// </summary>
   /// <param name="cancellationToken">The cancellation token.</param>
   /// <response code="200">All requests.</response>
-  /// <returns>All requests.</returns>
+  /// <returns>Every stored request, newest first.</returns>
   [HttpGet]
   [Authorize(Policy = "RequiresElevation")]
   [ProducesResponseType(StatusCodes.Status200OK)]
@@ -118,7 +118,7 @@ public class RequestsController : ControllerBase
   /// <param name="cancellationToken">The cancellation token.</param>
   /// <response code="200">The updated request.</response>
   /// <response code="404">No such request.</response>
-  /// <returns>The updated request.</returns>
+  /// <returns>The request with its new approved status.</returns>
   [HttpPost("{id}/Approve")]
   [Authorize(Policy = "RequiresElevation")]
   [ProducesResponseType(StatusCodes.Status200OK)]
@@ -133,7 +133,7 @@ public class RequestsController : ControllerBase
   /// <param name="cancellationToken">The cancellation token.</param>
   /// <response code="200">The updated request.</response>
   /// <response code="404">No such request.</response>
-  /// <returns>The updated request.</returns>
+  /// <returns>The request with its new denied status.</returns>
   [HttpPost("{id}/Deny")]
   [Authorize(Policy = "RequiresElevation")]
   [ProducesResponseType(StatusCodes.Status200OK)]
