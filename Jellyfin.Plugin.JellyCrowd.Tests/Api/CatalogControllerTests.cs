@@ -73,6 +73,27 @@ public class CatalogControllerTests
   }
 
   [Fact]
+  public async Task Discover_ReturnsOkWithItems()
+  {
+    var items = new List<CatalogItem> { new() { TmdbId = 7, MediaType = "movie", Title = "D" } };
+    var controller = CreateController(new FakeTmdbClient { Results = items });
+
+    var result = await controller.Discover("movie", "28", 2000, 2020, 6.0, 9.0, "rating", null, CancellationToken.None);
+
+    Assert.IsType<OkObjectResult>(result.Result);
+  }
+
+  [Fact]
+  public async Task Genres_InvalidMediaType_ReturnsBadRequest()
+  {
+    var controller = CreateController(new FakeTmdbClient());
+
+    var result = await controller.Genres("book", null, CancellationToken.None);
+
+    Assert.IsType<BadRequestObjectResult>(result.Result);
+  }
+
+  [Fact]
   public async Task GetDetails_WhenNotFound_Returns404()
   {
     var controller = CreateController(new FakeTmdbClient { Detail = null });
@@ -129,6 +150,26 @@ public class CatalogControllerTests
       }
 
       return Task.FromResult(Detail);
+    }
+
+    public Task<IReadOnlyList<CatalogItem>> DiscoverAsync(string mediaType, DiscoverQuery query, string language, CancellationToken cancellationToken)
+    {
+      if (Throw is not null)
+      {
+        throw Throw;
+      }
+
+      return Task.FromResult(Results);
+    }
+
+    public Task<IReadOnlyList<Genre>> GetGenresAsync(string mediaType, string language, CancellationToken cancellationToken)
+    {
+      if (Throw is not null)
+      {
+        throw Throw;
+      }
+
+      return Task.FromResult<IReadOnlyList<Genre>>(new List<Genre>());
     }
   }
 }

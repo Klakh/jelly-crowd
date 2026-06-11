@@ -28,6 +28,25 @@ public interface ITmdbClient
   Task<IReadOnlyList<CatalogItem>> SearchAsync(string query, string language, CancellationToken cancellationToken);
 
   /// <summary>
+  /// Discovers movies or shows matching the given filters.
+  /// </summary>
+  /// <param name="mediaType">The media type (<c>movie</c> or <c>tv</c>).</param>
+  /// <param name="query">The discover filters.</param>
+  /// <param name="language">The TMDB language code.</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <returns>The matching catalog items.</returns>
+  Task<IReadOnlyList<CatalogItem>> DiscoverAsync(string mediaType, DiscoverQuery query, string language, CancellationToken cancellationToken);
+
+  /// <summary>
+  /// Gets the available genres for a media type.
+  /// </summary>
+  /// <param name="mediaType">The media type (<c>movie</c> or <c>tv</c>).</param>
+  /// <param name="language">The TMDB language code.</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <returns>The genres.</returns>
+  Task<IReadOnlyList<Genre>> GetGenresAsync(string mediaType, string language, CancellationToken cancellationToken);
+
+  /// <summary>
   /// Gets the details for a single movie or show.
   /// </summary>
   /// <param name="mediaType">The media type (<c>movie</c> or <c>tv</c>).</param>

@@ -71,4 +71,50 @@ public class TmdbResponseParserTests
     Assert.Equal("Detail Movie", item.Title);
     Assert.Equal("2021-02-02", item.ReleaseDate);
   }
+
+  [Fact]
+  public void ParseDetails_Movie_MapsGenresRuntimeAndImdb()
+  {
+    const string json = """
+    { "id": 10, "title": "M", "release_date": "2021-02-02", "vote_average": 6.0,
+      "runtime": 131, "imdb_id": "tt1234567",
+      "genres": [ { "id": 18, "name": "Drama" }, { "id": 878, "name": "Science Fiction" } ] }
+    """;
+
+    var item = TmdbResponseParser.ParseDetails(json, "movie");
+
+    Assert.NotNull(item);
+    Assert.Equal(131, item!.Runtime);
+    Assert.Equal("tt1234567", item.ImdbId);
+    Assert.Equal(new[] { "Drama", "Science Fiction" }, item.Genres);
+  }
+
+  [Fact]
+  public void ParseDetails_Tv_UsesEpisodeRuntimeAndExternalImdb()
+  {
+    const string json = """
+    { "id": 20, "name": "S", "first_air_date": "2019-01-01", "vote_average": 8.0,
+      "episode_run_time": [ 50 ], "external_ids": { "imdb_id": "tt7654321" },
+      "genres": [ { "id": 35, "name": "Comedy" } ] }
+    """;
+
+    var item = TmdbResponseParser.ParseDetails(json, "tv");
+
+    Assert.NotNull(item);
+    Assert.Equal(50, item!.Runtime);
+    Assert.Equal("tt7654321", item.ImdbId);
+    Assert.Equal(new[] { "Comedy" }, item.Genres);
+  }
+
+  [Fact]
+  public void ParseGenres_MapsIdAndName()
+  {
+    const string json = """{ "genres": [ { "id": 28, "name": "Action" }, { "id": 12, "name": "Adventure" } ] }""";
+
+    var genres = TmdbResponseParser.ParseGenres(json);
+
+    Assert.Equal(2, genres.Count);
+    Assert.Equal(28, genres[0].Id);
+    Assert.Equal("Action", genres[0].Name);
+  }
 }

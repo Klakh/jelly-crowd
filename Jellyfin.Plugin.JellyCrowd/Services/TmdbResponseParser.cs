@@ -81,8 +81,98 @@ public static class TmdbResponseParser
       PosterPath = GetString(element, "poster_path"),
       BackdropPath = GetString(element, "backdrop_path"),
       ReleaseDate = GetString(element, isMovie ? "release_date" : "first_air_date"),
-      VoteAverage = GetDouble(element, "vote_average")
+      VoteAverage = GetDouble(element, "vote_average"),
+      Genres = GetGenreNames(element),
+      Runtime = GetRuntime(element, isMovie),
+      ImdbId = GetImdbId(element)
     };
+  }
+
+  /// <summary>
+  /// Parses a TMDB genre-list payload (<c>/genre/movie/list</c> or <c>/genre/tv/list</c>).
+  /// </summary>
+  /// <param name="json">The raw TMDB JSON payload.</param>
+  /// <returns>The parsed genres.</returns>
+  public static IReadOnlyList<Genre> ParseGenres(string json)
+  {
+    ArgumentNullException.ThrowIfNull(json);
+
+    var genres = new List<Genre>();
+    using var doc = JsonDocument.Parse(json);
+    if (!doc.RootElement.TryGetProperty("genres", out var array) || array.ValueKind != JsonValueKind.Array)
+    {
+      return genres;
+    }
+
+    foreach (var element in array.EnumerateArray())
+    {
+      var name = GetString(element, "name");
+      if (name is not null)
+      {
+        genres.Add(new Genre { Id = GetInt(element, "id"), Name = name });
+      }
+    }
+
+    return genres;
+  }
+
+  private static IReadOnlyList<string> GetGenreNames(JsonElement element)
+  {
+    if (!element.TryGetProperty("genres", out var array) || array.ValueKind != JsonValueKind.Array)
+    {
+      return Array.Empty<string>();
+    }
+
+    var names = new List<string>();
+    foreach (var genre in array.EnumerateArray())
+    {
+      var name = GetString(genre, "name");
+      if (name is not null)
+      {
+        names.Add(name);
+      }
+    }
+
+    return names;
+  }
+
+  private static int? GetRuntime(JsonElement element, bool isMovie)
+  {
+    if (isMovie)
+    {
+      var runtime = GetInt(element, "runtime");
+      return runtime > 0 ? runtime : null;
+    }
+
+    if (element.TryGetProperty("episode_run_time", out var array)
+        && array.ValueKind == JsonValueKind.Array)
+    {
+      foreach (var value in array.EnumerateArray())
+      {
+        if (value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var minutes) && minutes > 0)
+        {
+          return minutes;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private static string? GetImdbId(JsonElement element)
+  {
+    var direct = GetString(element, "imdb_id");
+    if (direct is not null)
+    {
+      return direct;
+    }
+
+    if (element.TryGetProperty("external_ids", out var external) && external.ValueKind == JsonValueKind.Object)
+    {
+      return GetString(external, "imdb_id");
+    }
+
+    return null;
   }
 
   private static string? GetString(JsonElement element, string property)
