@@ -52,6 +52,18 @@
     return map[String(status).toLowerCase()] || 'status_pending';
   }
 
+  // Admin sort order for a request status: Pending, then Approved, then Available, then Denied.
+  function statusRank(status) {
+    var order = {
+      '0': 0, 'pending': 0,
+      '1': 1, 'approved': 1,
+      '3': 2, 'available': 2,
+      '2': 3, 'denied': 3
+    };
+    var key = String(status).toLowerCase();
+    return Object.prototype.hasOwnProperty.call(order, key) ? order[key] : 99;
+  }
+
   // Human-readable byte size (binary units).
   function formatBytes(bytes) {
     var n = Number(bytes) || 0;
@@ -85,6 +97,7 @@
     formatRating: formatRating,
     errorKey: errorKey,
     statusLabelKey: statusLabelKey,
+    statusRank: statusRank,
     formatBytes: formatBytes,
     quotaPercent: quotaPercent
   };

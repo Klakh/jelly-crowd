@@ -9,7 +9,8 @@
              background: rgba(127, 127, 127, 0.15); color: inherit; }
     .jcTab.jcTabActive { background: #00a4dc; color: #fff; }
     .jcAdminRow { display: flex; align-items: center; gap: 1em; padding: 0.5em 0; }
-    .jcAdminRow > span { flex: 1; }
+    .jcAdminRow > .jcAdminTitle { flex: 1; }
+    .jcStatus { font-size: 0.85em; padding: 0.15em 0.6em; border-radius: 0.3em; background: rgba(127, 127, 127, 0.25); white-space: nowrap; }
   </style>
 </head>
 <body>
@@ -208,12 +209,27 @@
             .catch(function () { strings = {}; });
         }
 
+        // Load the shared pure helpers (statusRank / statusLabelKey) once.
+        function ensureLib() {
+          if (window.JellyCrowdLib) {
+            return Promise.resolve();
+          }
+          return new Promise(function (resolve) {
+            var s = document.createElement('script');
+            s.src = ApiClient.getUrl('JellyCrowd/Web/catalog.lib.js');
+            s.onload = resolve;
+            s.onerror = resolve;
+            document.head.appendChild(s);
+          });
+        }
+
         function applyLabels() {
           document.querySelector('#jcTabSettings').textContent = t('tab_settings');
           document.querySelector('#jcTabQuotas').textContent = t('tab_quotas');
           document.querySelector('#jcTabRequests').textContent = t('tab_requests');
           document.querySelector('#jcQuotaOverridesTitle').textContent = t('admin_quota_title');
           document.querySelector('#jcQuotaOverridesHint').textContent = t('admin_quota_hint');
+          document.querySelector('#jcAdminPendingTitle').textContent = t('tab_requests');
         }
 
         function decide(id, action) {
@@ -223,40 +239,51 @@
         }
 
         function render(requests) {
-          var pending = (requests || []).filter(isPending);
-          document.querySelector('#jcAdminPendingTitle').textContent = t('admin_pending_title');
+          var all = (requests || []).slice();
+          if (window.JellyCrowdLib) {
+            all.sort(function (a, b) { return window.JellyCrowdLib.statusRank(a.Status) - window.JellyCrowdLib.statusRank(b.Status); });
+          }
+
           var container = document.querySelector('#jcAdminPending');
           var empty = document.querySelector('#jcAdminPendingEmpty');
           container.innerHTML = '';
 
-          if (pending.length === 0) {
-            empty.textContent = t('admin_no_pending');
+          if (all.length === 0) {
+            empty.textContent = t('admin_no_requests');
             empty.hidden = false;
             return;
           }
 
           empty.hidden = true;
-          pending.forEach(function (request) {
+          all.forEach(function (request) {
             var row = document.createElement('div');
             row.className = 'jcAdminRow';
 
             var label = document.createElement('span');
+            label.className = 'jcAdminTitle';
             label.textContent = request.Title;
             row.appendChild(label);
 
-            var approve = document.createElement('button');
-            approve.type = 'button';
-            approve.className = 'raised emby-button';
-            approve.textContent = t('admin_approve');
-            approve.addEventListener('click', function () { decide(request.Id, 'Approve'); });
-            row.appendChild(approve);
+            var status = document.createElement('span');
+            status.className = 'jcStatus';
+            status.textContent = window.JellyCrowdLib ? t(window.JellyCrowdLib.statusLabelKey(request.Status)) : '';
+            row.appendChild(status);
 
-            var deny = document.createElement('button');
-            deny.type = 'button';
-            deny.className = 'raised emby-button';
-            deny.textContent = t('admin_deny');
-            deny.addEventListener('click', function () { decide(request.Id, 'Deny'); });
-            row.appendChild(deny);
+            if (isPending(request)) {
+              var approve = document.createElement('button');
+              approve.type = 'button';
+              approve.className = 'raised emby-button';
+              approve.textContent = t('admin_approve');
+              approve.addEventListener('click', function () { decide(request.Id, 'Approve'); });
+              row.appendChild(approve);
+
+              var deny = document.createElement('button');
+              deny.type = 'button';
+              deny.className = 'raised emby-button';
+              deny.textContent = t('admin_deny');
+              deny.addEventListener('click', function () { decide(request.Id, 'Deny'); });
+              row.appendChild(deny);
+            }
 
             container.appendChild(row);
           });
@@ -269,7 +296,7 @@
         }
 
         document.querySelector('#JellyCrowdConfigPage').addEventListener('pageshow', function () {
-          loadStrings().then(function () {
+          loadStrings().then(ensureLib).then(function () {
             applyLabels();
             load();
           });

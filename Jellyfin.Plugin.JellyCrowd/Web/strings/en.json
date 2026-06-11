@@ -25,6 +25,7 @@
   "status_available": "Available",
   "admin_pending_title": "Pending requests",
   "admin_no_pending": "No pending requests.",
+  "admin_no_requests": "No requests yet.",
   "admin_approve": "Approve",
   "admin_deny": "Deny",
   "admin_requested_by": "Requested by",

@@ -58,6 +58,19 @@ test('statusLabelKey handles numeric and string statuses', () => {
   assert.strictEqual(lib.statusLabelKey('weird'), 'status_pending');
 });
 
+test('statusRank orders pending < approved < available < denied', () => {
+  assert.strictEqual(lib.statusRank(0), 0);
+  assert.strictEqual(lib.statusRank('Pending'), 0);
+  assert.strictEqual(lib.statusRank(1), 1);
+  assert.strictEqual(lib.statusRank('Approved'), 1);
+  assert.strictEqual(lib.statusRank(3), 2);
+  assert.strictEqual(lib.statusRank('Available'), 2);
+  assert.strictEqual(lib.statusRank(2), 3);
+  assert.ok(lib.statusRank(0) < lib.statusRank(1));
+  assert.ok(lib.statusRank(1) < lib.statusRank(3));
+  assert.ok(lib.statusRank(3) < lib.statusRank(2));
+});
+
 test('formatBytes renders binary units', () => {
   assert.strictEqual(lib.formatBytes(0), '0 B');
   assert.strictEqual(lib.formatBytes(1024), '1.0 KiB');
