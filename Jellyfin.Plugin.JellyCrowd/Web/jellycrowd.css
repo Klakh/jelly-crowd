@@ -98,6 +98,28 @@
   padding: 0.5em 1em;
 }
 
+.jellycrowd-provider-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  flex: 0 0 auto;
+  align-self: center;
+  padding: 0.4em 0.7em;
+  border: none;
+  border-radius: 0.4em;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+  white-space: nowrap;
+}
+
+.jellycrowd-provider-logo {
+  width: 1.8em;
+  height: 1.8em;
+  border-radius: 0.3em;
+  object-fit: cover;
+}
+
 .jellycrowd-card {
   position: relative;
   display: flex;

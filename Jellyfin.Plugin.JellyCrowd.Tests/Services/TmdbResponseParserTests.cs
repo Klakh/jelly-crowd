@@ -125,6 +125,24 @@ public class TmdbResponseParserTests
   }
 
   [Fact]
+  public void ParseWatchProviders_MapsAndSortsByPriority()
+  {
+    const string json = """
+    { "results": [
+      { "provider_id": 337, "provider_name": "Disney+", "logo_path": "/d.jpg", "display_priority": 5 },
+      { "provider_id": 8, "provider_name": "Netflix", "logo_path": "/n.jpg", "display_priority": 1 }
+    ] }
+    """;
+
+    var providers = TmdbResponseParser.ParseWatchProviders(json);
+
+    Assert.Equal(2, providers.Count);
+    Assert.Equal("Netflix", providers[0].Name);
+    Assert.Equal(8, providers[0].Id);
+    Assert.Equal("/n.jpg", providers[0].LogoPath);
+  }
+
+  [Fact]
   public void ParseGenres_MapsIdAndName()
   {
     const string json = """{ "genres": [ { "id": 28, "name": "Action" }, { "id": 12, "name": "Adventure" } ] }""";

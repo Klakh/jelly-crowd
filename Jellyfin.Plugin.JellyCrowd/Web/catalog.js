@@ -377,13 +377,26 @@
   // ---------- feed (infinite scroll + interleaved category rows) ----------
 
   var REGION = (fullLocale().split('-')[1] || 'US').toUpperCase();
+  var PROVIDER_LOGO_BASE = 'https://image.tmdb.org/t/p/w92';
+  // Fallback list used if the TMDB providers endpoint is unavailable.
   var PLATFORMS = [
-    { id: 8, name: 'Netflix' },
-    { id: 119, name: 'Prime Video' },
-    { id: 337, name: 'Disney+' },
-    { id: 350, name: 'Apple TV+' },
-    { id: 1899, name: 'Max' }
+    { Id: 8, Name: 'Netflix' },
+    { Id: 119, Name: 'Prime Video' },
+    { Id: 337, Name: 'Disney+' },
+    { Id: 350, Name: 'Apple TV+' },
+    { Id: 1899, Name: 'Max' }
   ];
+  var providers = [];
+
+  function loadProviders() {
+    return apiGet('JellyCrowd/Catalog/Providers/' + filters.mediaType + '?region=' + encodeURIComponent(REGION) + '&language=' + encodeURIComponent(fullLocale()))
+      .then(function (list) { providers = (list && list.length) ? list.slice(0, 15) : []; })
+      .catch(function () { providers = []; });
+  }
+
+  function platformList() {
+    return providers.length ? providers : PLATFORMS;
+  }
 
   var searchQuery = '';
   var gridPage = 0;
@@ -473,13 +486,23 @@
     feedEl().appendChild(section);
 
     if (def.kind === 'platforms') {
-      PLATFORMS.forEach(function (platform) {
+      platformList().forEach(function (platform) {
         var chip = document.createElement('button');
         chip.type = 'button';
-        chip.className = 'jellycrowd-chip';
-        chip.textContent = platform.name;
+        chip.className = 'jellycrowd-provider-chip';
+        if (platform.LogoPath) {
+          var logo = document.createElement('img');
+          logo.className = 'jellycrowd-provider-logo';
+          logo.loading = 'lazy';
+          logo.alt = platform.Name || '';
+          logo.src = PROVIDER_LOGO_BASE + platform.LogoPath;
+          chip.appendChild(logo);
+        }
+        var label = document.createElement('span');
+        label.textContent = platform.Name;
+        chip.appendChild(label);
         chip.addEventListener('click', function () {
-          filters.watchProviders = String(platform.id);
+          filters.watchProviders = String(platform.Id);
           resetFeed();
         });
         strip.appendChild(chip);
@@ -494,14 +517,13 @@
 
   function buildRowQueue() {
     var sciFi = filters.mediaType === 'tv' ? '10765' : '878';
-    return [
-      { kind: 'platforms', title: t('streaming_platforms') },
-      { kind: 'path', title: PLATFORMS[0].name, path: providerRowPath(8) },
-      { kind: 'path', title: PLATFORMS[1].name, path: providerRowPath(119) },
-      { kind: 'path', title: PLATFORMS[2].name, path: providerRowPath(337) },
-      { kind: 'path', title: t('row_toprated'), path: baseDiscover() + '&sortBy=rating&page=1' },
-      { kind: 'path', title: t('row_scifi'), path: baseDiscover() + '&sortBy=popularity&page=1&genres=' + sciFi }
-    ];
+    var queue = [{ kind: 'platforms', title: t('streaming_platforms') }];
+    platformList().slice(0, 4).forEach(function (platform) {
+      queue.push({ kind: 'path', title: platform.Name, path: providerRowPath(platform.Id) });
+    });
+    queue.push({ kind: 'path', title: t('row_toprated'), path: baseDiscover() + '&sortBy=rating&page=1' });
+    queue.push({ kind: 'path', title: t('row_scifi'), path: baseDiscover() + '&sortBy=popularity&page=1&genres=' + sciFi });
+    return queue;
   }
 
   function sentinelVisible() {
@@ -683,10 +705,11 @@
     }
     filters.mediaType = type;
     filters.genres = [];
+    filters.watchProviders = '';
     document.getElementById('jcTypeMovie').classList.toggle('jellycrowd-chip-active', type === 'movie');
     document.getElementById('jcTypeTv').classList.toggle('jellycrowd-chip-active', type === 'tv');
     loadGenres();
-    resetFeed();
+    loadProviders().then(resetFeed);
   }
 
   function resetFilters() {
@@ -742,6 +765,7 @@
           quotaExceeded = !!(q && !q.Unlimited && q.QuotaBytes > 0 && q.UsedBytes >= q.QuotaBytes);
         })
         .catch(function () { /* quota check is best-effort */ })
+        .then(loadProviders)
         .then(function () {
           loadGenres();
           resetFeed();

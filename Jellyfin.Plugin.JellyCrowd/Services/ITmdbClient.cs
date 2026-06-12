@@ -48,6 +48,16 @@ public interface ITmdbClient
   Task<IReadOnlyList<Genre>> GetGenresAsync(string mediaType, string language, CancellationToken cancellationToken);
 
   /// <summary>
+  /// Gets the watch providers (streaming platforms) available in a region for a media type.
+  /// </summary>
+  /// <param name="mediaType">The media type (<c>movie</c> or <c>tv</c>).</param>
+  /// <param name="region">The ISO 3166-1 region (e.g. <c>FR</c>).</param>
+  /// <param name="language">The TMDB language code.</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <returns>The providers, most prominent first.</returns>
+  Task<IReadOnlyList<WatchProvider>> GetWatchProvidersAsync(string mediaType, string region, string language, CancellationToken cancellationToken);
+
+  /// <summary>
   /// Gets the seasons of a show.
   /// </summary>
   /// <param name="tmdbId">The show's TMDB identifier.</param>

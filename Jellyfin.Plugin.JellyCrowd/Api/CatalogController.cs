@@ -266,6 +266,50 @@ public class CatalogController : ControllerBase
     }
   }
 
+  /// <summary>
+  /// Lists the watch providers (streaming platforms) available in a region.
+  /// </summary>
+  /// <param name="mediaType">The media type (<c>movie</c> or <c>tv</c>).</param>
+  /// <param name="region">ISO 3166-1 region (defaults to <c>US</c>).</param>
+  /// <param name="language">Optional TMDB language code.</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <response code="200">The providers.</response>
+  /// <response code="400">The media type was invalid.</response>
+  /// <response code="503">TMDB is not configured or unreachable.</response>
+  /// <returns>The available watch providers.</returns>
+  [HttpGet("Providers/{mediaType}")]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status400BadRequest)]
+  [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+  public async Task<ActionResult<IReadOnlyList<WatchProvider>>> Providers(
+    string mediaType,
+    [FromQuery] string? region,
+    [FromQuery] string? language,
+    CancellationToken cancellationToken)
+  {
+    if (!string.Equals(mediaType, "movie", StringComparison.Ordinal)
+        && !string.Equals(mediaType, "tv", StringComparison.Ordinal))
+    {
+      return BadRequest("The 'mediaType' must be 'movie' or 'tv'.");
+    }
+
+    var watchRegion = string.IsNullOrWhiteSpace(region) ? "US" : region;
+
+    try
+    {
+      var providers = await _tmdbClient.GetWatchProvidersAsync(mediaType, watchRegion, Normalize(language), cancellationToken).ConfigureAwait(false);
+      return Ok(providers);
+    }
+    catch (InvalidOperationException ex)
+    {
+      return NotConfigured(ex);
+    }
+    catch (HttpRequestException ex)
+    {
+      return Upstream(ex);
+    }
+  }
+
   private static string Normalize(string? language)
     => string.IsNullOrWhiteSpace(language) ? DefaultLanguage : language;
 

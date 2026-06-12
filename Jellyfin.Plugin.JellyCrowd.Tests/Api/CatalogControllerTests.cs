@@ -183,5 +183,15 @@ public class CatalogControllerTests
 
       return Task.FromResult<IReadOnlyList<Season>>(new List<Season>());
     }
+
+    public Task<IReadOnlyList<WatchProvider>> GetWatchProvidersAsync(string mediaType, string region, string language, CancellationToken cancellationToken)
+    {
+      if (Throw is not null)
+      {
+        throw Throw;
+      }
+
+      return Task.FromResult<IReadOnlyList<WatchProvider>>(new List<WatchProvider>());
+    }
   }
 }

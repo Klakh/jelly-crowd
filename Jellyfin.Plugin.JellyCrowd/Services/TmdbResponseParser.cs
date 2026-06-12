@@ -145,6 +145,44 @@ public static class TmdbResponseParser
     return seasons;
   }
 
+  /// <summary>
+  /// Parses a TMDB watch-providers payload (<c>/watch/providers/{movie|tv}?watch_region=…</c>), sorted by
+  /// regional display priority.
+  /// </summary>
+  /// <param name="json">The raw TMDB JSON payload.</param>
+  /// <returns>The parsed providers, most prominent first.</returns>
+  public static IReadOnlyList<WatchProvider> ParseWatchProviders(string json)
+  {
+    ArgumentNullException.ThrowIfNull(json);
+
+    var providers = new List<WatchProvider>();
+    using var doc = JsonDocument.Parse(json);
+    if (!doc.RootElement.TryGetProperty("results", out var array) || array.ValueKind != JsonValueKind.Array)
+    {
+      return providers;
+    }
+
+    foreach (var element in array.EnumerateArray())
+    {
+      var name = GetString(element, "provider_name");
+      if (name is null)
+      {
+        continue;
+      }
+
+      providers.Add(new WatchProvider
+      {
+        Id = GetInt(element, "provider_id"),
+        Name = name,
+        LogoPath = GetString(element, "logo_path"),
+        DisplayPriority = GetInt(element, "display_priority")
+      });
+    }
+
+    providers.Sort((a, b) => a.DisplayPriority.CompareTo(b.DisplayPriority));
+    return providers;
+  }
+
   private static IReadOnlyList<string> GetGenreNames(JsonElement element)
   {
     if (!element.TryGetProperty("genres", out var array) || array.ValueKind != JsonValueKind.Array)

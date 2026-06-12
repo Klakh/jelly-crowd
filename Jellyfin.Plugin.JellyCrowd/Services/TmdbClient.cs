@@ -123,6 +123,17 @@ public class TmdbClient : ITmdbClient
   }
 
   /// <inheritdoc />
+  public async Task<IReadOnlyList<WatchProvider>> GetWatchProvidersAsync(string mediaType, string region, string language, CancellationToken cancellationToken)
+  {
+    EnsureMediaType(mediaType);
+
+    var json = await GetAsync(
+      $"/watch/providers/{mediaType}?watch_region={Escape(region)}&language={Escape(language)}",
+      cancellationToken).ConfigureAwait(false);
+    return TmdbResponseParser.ParseWatchProviders(json);
+  }
+
+  /// <inheritdoc />
   public async Task<IReadOnlyList<Season>> GetSeasonsAsync(int tmdbId, string language, CancellationToken cancellationToken)
   {
     var id = tmdbId.ToString(CultureInfo.InvariantCulture);
