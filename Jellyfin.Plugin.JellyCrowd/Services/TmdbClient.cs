@@ -40,11 +40,14 @@ public class TmdbClient : ITmdbClient
   }
 
   /// <inheritdoc />
-  public async Task<IReadOnlyList<CatalogItem>> SearchAsync(string query, string language, CancellationToken cancellationToken)
+  public async Task<IReadOnlyList<CatalogItem>> SearchAsync(string query, string language, int page, CancellationToken cancellationToken)
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(query);
 
-    var json = await GetAsync($"/search/multi?query={Escape(query)}&language={Escape(language)}&include_adult=false", cancellationToken).ConfigureAwait(false);
+    var resultPage = page > 0 ? page : 1;
+    var json = await GetAsync(
+      $"/search/multi?query={Escape(query)}&language={Escape(language)}&include_adult=false&page={resultPage.ToString(CultureInfo.InvariantCulture)}",
+      cancellationToken).ConfigureAwait(false);
     return TmdbResponseParser.ParseResults(json);
   }
 
@@ -95,6 +98,15 @@ public class TmdbClient : ITmdbClient
     if (query.MaxRating.HasValue)
     {
       builder.Append("&vote_average.lte=").Append(query.MaxRating.Value.ToString(CultureInfo.InvariantCulture));
+    }
+
+    var page = query.Page is > 0 ? query.Page.Value : 1;
+    builder.Append("&page=").Append(page.ToString(CultureInfo.InvariantCulture));
+
+    if (!string.IsNullOrWhiteSpace(query.WatchProviders) && !string.IsNullOrWhiteSpace(query.WatchRegion))
+    {
+      builder.Append("&with_watch_providers=").Append(Escape(query.WatchProviders))
+        .Append("&watch_region=").Append(Escape(query.WatchRegion));
     }
 
     var json = await GetAsync(builder.ToString(), cancellationToken).ConfigureAwait(false);

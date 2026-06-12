@@ -23,9 +23,10 @@ public interface ITmdbClient
   /// </summary>
   /// <param name="query">The free-text search query.</param>
   /// <param name="language">The TMDB language code.</param>
+  /// <param name="page">The result page (1-based).</param>
   /// <param name="cancellationToken">The cancellation token.</param>
   /// <returns>The matching catalog items.</returns>
-  Task<IReadOnlyList<CatalogItem>> SearchAsync(string query, string language, CancellationToken cancellationToken);
+  Task<IReadOnlyList<CatalogItem>> SearchAsync(string query, string language, int page, CancellationToken cancellationToken);
 
   /// <summary>
   /// Discovers movies or shows matching the given filters.

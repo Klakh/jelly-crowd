@@ -65,6 +65,7 @@ public class CatalogController : ControllerBase
   /// </summary>
   /// <param name="query">The free-text search query.</param>
   /// <param name="language">Optional TMDB language code (defaults to <c>en-US</c>).</param>
+  /// <param name="page">Result page (1-based).</param>
   /// <param name="cancellationToken">The cancellation token.</param>
   /// <response code="200">Matching items returned.</response>
   /// <response code="400">The query was empty.</response>
@@ -77,6 +78,7 @@ public class CatalogController : ControllerBase
   public async Task<ActionResult<IReadOnlyList<CatalogItem>>> Search(
     [FromQuery] string? query,
     [FromQuery] string? language,
+    [FromQuery] int? page,
     CancellationToken cancellationToken)
   {
     if (string.IsNullOrWhiteSpace(query))
@@ -85,7 +87,7 @@ public class CatalogController : ControllerBase
     }
 
     return await ExecuteAsync(
-      () => _tmdbClient.SearchAsync(query, Normalize(language), cancellationToken)).ConfigureAwait(false);
+      () => _tmdbClient.SearchAsync(query, Normalize(language), page ?? 1, cancellationToken)).ConfigureAwait(false);
   }
 
   /// <summary>
@@ -149,6 +151,9 @@ public class CatalogController : ControllerBase
   /// <param name="minRating">Minimum TMDB rating (0-10).</param>
   /// <param name="maxRating">Maximum TMDB rating (0-10).</param>
   /// <param name="sortBy">Sort order: <c>rating</c>, <c>release</c> or <c>popularity</c>.</param>
+  /// <param name="page">Result page (1-based).</param>
+  /// <param name="watchProviders">Comma-separated TMDB watch-provider ids (requires a region).</param>
+  /// <param name="watchRegion">ISO 3166-1 region for watch-provider filtering (e.g. FR, US).</param>
   /// <param name="language">Optional TMDB language code.</param>
   /// <param name="cancellationToken">The cancellation token.</param>
   /// <response code="200">Matching items returned.</response>
@@ -165,6 +170,9 @@ public class CatalogController : ControllerBase
     [FromQuery] double? minRating,
     [FromQuery] double? maxRating,
     [FromQuery] string? sortBy,
+    [FromQuery] int? page,
+    [FromQuery] string? watchProviders,
+    [FromQuery] string? watchRegion,
     [FromQuery] string? language,
     CancellationToken cancellationToken)
   {
@@ -176,7 +184,10 @@ public class CatalogController : ControllerBase
       MaxYear = maxYear,
       MinRating = minRating,
       MaxRating = maxRating,
-      SortBy = sortBy
+      SortBy = sortBy,
+      Page = page,
+      WatchProviders = watchProviders,
+      WatchRegion = watchRegion
     };
 
     return await ExecuteAsync(

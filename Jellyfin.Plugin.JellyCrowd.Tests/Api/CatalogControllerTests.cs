@@ -49,7 +49,7 @@ public class CatalogControllerTests
   {
     var controller = CreateController(new FakeTmdbClient());
 
-    var result = await controller.Search("   ", null, CancellationToken.None);
+    var result = await controller.Search("   ", null, null, CancellationToken.None);
 
     Assert.IsType<BadRequestObjectResult>(result.Result);
   }
@@ -59,7 +59,7 @@ public class CatalogControllerTests
   {
     var controller = CreateController(new FakeTmdbClient { Results = new List<CatalogItem>() });
 
-    var result = await controller.Search("matrix", "fr-FR", CancellationToken.None);
+    var result = await controller.Search("matrix", "fr-FR", null, CancellationToken.None);
 
     Assert.IsType<OkObjectResult>(result.Result);
   }
@@ -80,7 +80,7 @@ public class CatalogControllerTests
     var items = new List<CatalogItem> { new() { TmdbId = 7, MediaType = "movie", Title = "D" } };
     var controller = CreateController(new FakeTmdbClient { Results = items });
 
-    var result = await controller.Discover("movie", "28", 2000, 2020, 6.0, 9.0, "rating", null, CancellationToken.None);
+    var result = await controller.Discover("movie", "28", 2000, 2020, 6.0, 9.0, "rating", null, null, null, null, CancellationToken.None);
 
     Assert.IsType<OkObjectResult>(result.Result);
   }
@@ -134,7 +134,7 @@ public class CatalogControllerTests
       return Task.FromResult(Results);
     }
 
-    public Task<IReadOnlyList<CatalogItem>> SearchAsync(string query, string language, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<CatalogItem>> SearchAsync(string query, string language, int page, CancellationToken cancellationToken)
     {
       if (Throw is not null)
       {
