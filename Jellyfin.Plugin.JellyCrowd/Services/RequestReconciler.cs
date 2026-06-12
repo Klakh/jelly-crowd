@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.JellyCrowd.Models;
@@ -36,28 +37,35 @@ public sealed class RequestReconciler : IRequestReconciler
   {
     var all = await _store.GetAllAsync(cancellationToken).ConfigureAwait(false);
     var resolved = 0;
+    var reverted = 0;
 
     foreach (var request in all)
     {
-      if (request.Status != RequestStatus.Approved)
-      {
-        continue;
-      }
-
       cancellationToken.ThrowIfCancellationRequested();
 
-      var itemId = _libraryMatcher.FindItemId(request.MediaType, request.TmdbId);
-      if (itemId is not null)
+      if (request.Status == RequestStatus.Approved)
       {
-        await _store.MarkAvailableAsync(request.Id, itemId, cancellationToken).ConfigureAwait(false);
-        await _notificationService.NotifyRequestEventAsync(request, NotificationEvent.Available, cancellationToken).ConfigureAwait(false);
-        resolved++;
+        var itemId = _libraryMatcher.FindItemId(request.MediaType, request.TmdbId);
+        if (itemId is not null)
+        {
+          await _store.MarkAvailableAsync(request.Id, itemId, cancellationToken).ConfigureAwait(false);
+          await _notificationService.NotifyRequestEventAsync(request, NotificationEvent.Available, cancellationToken).ConfigureAwait(false);
+          resolved++;
+        }
+      }
+      else if (request.Status == RequestStatus.Available
+               && request.DeletionRequestedAt is null
+               && _libraryMatcher.FindItemId(request.MediaType, request.TmdbId) is null)
+      {
+        // The media is gone (e.g. deleted by another user / removed externally): no longer available.
+        await _store.UpdateStatusAsync(request.Id, RequestStatus.Approved, request.DecidedBy ?? Guid.Empty, cancellationToken).ConfigureAwait(false);
+        reverted++;
       }
     }
 
-    if (resolved > 0)
+    if (resolved > 0 || reverted > 0)
     {
-      _logger.LogInformation("Jelly Crowd reconcile: {Resolved} request(s) marked available.", resolved);
+      _logger.LogInformation("Jelly Crowd reconcile: {Resolved} available, {Reverted} reverted.", resolved, reverted);
     }
 
     return resolved;

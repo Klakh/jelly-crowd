@@ -41,7 +41,6 @@ public sealed class JsonRequestStore : IRequestStore, IDisposable
     {
       var items = await LoadAsync(cancellationToken).ConfigureAwait(false);
       record.Id = record.Id == Guid.Empty ? Guid.NewGuid() : record.Id;
-      record.Status = RequestStatus.Pending;
       record.RequestedAt = DateTime.UtcNow;
       items.Add(record);
       await SaveAsync(cancellationToken).ConfigureAwait(false);
@@ -198,6 +197,26 @@ public sealed class JsonRequestStore : IRequestStore, IDisposable
       record.DeletionRequestedAt = DateTime.UtcNow;
       await SaveAsync(cancellationToken).ConfigureAwait(false);
       return record;
+    }
+    finally
+    {
+      _mutex.Release();
+    }
+  }
+
+  /// <inheritdoc />
+  public async Task<bool> AnyActiveReferenceAsync(Guid excludeId, int tmdbId, string mediaType, CancellationToken cancellationToken)
+  {
+    await _mutex.WaitAsync(cancellationToken).ConfigureAwait(false);
+    try
+    {
+      var items = await LoadAsync(cancellationToken).ConfigureAwait(false);
+      return items.Any(r =>
+        r.Id != excludeId
+        && r.TmdbId == tmdbId
+        && string.Equals(r.MediaType, mediaType, StringComparison.Ordinal)
+        && r.DeletionRequestedAt is null
+        && r.Status != RequestStatus.Denied);
     }
     finally
     {

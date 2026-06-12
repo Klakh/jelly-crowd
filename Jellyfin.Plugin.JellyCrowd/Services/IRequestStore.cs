@@ -91,6 +91,17 @@ public interface IRequestStore
   Task<RequestRecord?> RequestDeletionAsync(Guid id, Guid userId, CancellationToken cancellationToken);
 
   /// <summary>
+  /// Determines whether another request (different id, not flagged for deletion, not denied) still
+  /// references the same title — i.e. another user/season still wants the media.
+  /// </summary>
+  /// <param name="excludeId">The request to exclude (the one being deleted).</param>
+  /// <param name="tmdbId">The TMDB identifier.</param>
+  /// <param name="mediaType">The media type.</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <returns><c>true</c> when another active reference exists.</returns>
+  Task<bool> AnyActiveReferenceAsync(Guid excludeId, int tmdbId, string mediaType, CancellationToken cancellationToken);
+
+  /// <summary>
   /// Gets requests whose deletion was requested at or before the given cutoff (retention elapsed).
   /// </summary>
   /// <param name="cutoffUtc">The cutoff instant (UTC).</param>

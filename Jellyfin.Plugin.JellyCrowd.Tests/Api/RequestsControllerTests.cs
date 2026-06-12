@@ -183,7 +183,6 @@ public class RequestsControllerTests
     public Task<RequestRecord> CreateAsync(RequestRecord record, CancellationToken cancellationToken)
     {
       record.Id = Guid.NewGuid();
-      record.Status = RequestStatus.Pending;
       record.RequestedAt = DateTime.UtcNow;
       _items.Add(record);
       return Task.FromResult(record);
@@ -244,6 +243,11 @@ public class RequestsControllerTests
       record.DeletionRequestedAt = DateTime.UtcNow;
       return Task.FromResult<RequestRecord?>(record);
     }
+
+    public Task<bool> AnyActiveReferenceAsync(Guid excludeId, int tmdbId, string mediaType, CancellationToken cancellationToken)
+      => Task.FromResult(_items.Any(r => r.Id != excludeId && r.TmdbId == tmdbId
+        && string.Equals(r.MediaType, mediaType, StringComparison.Ordinal)
+        && r.DeletionRequestedAt is null && r.Status != RequestStatus.Denied));
 
     public Task<IReadOnlyList<RequestRecord>> GetDueForDeletionAsync(DateTime cutoffUtc, CancellationToken cancellationToken)
       => Task.FromResult<IReadOnlyList<RequestRecord>>(_items.Where(r => r.DeletionRequestedAt is not null && r.DeletionRequestedAt <= cutoffUtc).ToList());

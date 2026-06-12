@@ -66,7 +66,10 @@ public sealed class DeletionTask : IScheduledTask
       cancellationToken.ThrowIfCancellationRequested();
 
       var request = due[i];
-      if (!string.IsNullOrEmpty(request.JellyfinItemId))
+
+      // Only remove the file when no other active request still wants this title (shared media).
+      var sharedWithOthers = await _store.AnyActiveReferenceAsync(request.Id, request.TmdbId, request.MediaType, cancellationToken).ConfigureAwait(false);
+      if (!sharedWithOthers && !string.IsNullOrEmpty(request.JellyfinItemId))
       {
         _mediaDeleter.Delete(request.JellyfinItemId);
       }

@@ -96,6 +96,7 @@ public class RequestsController : ControllerBase
       return StatusCode(StatusCodes.Status403Forbidden, "This request would exceed your disk quota.");
     }
 
+    var requireApproval = Plugin.Instance?.Configuration.RequireApproval ?? true;
     var created = await _store.CreateAsync(
       new RequestRecord
       {
@@ -105,7 +106,8 @@ public class RequestsController : ControllerBase
         Title = dto.Title,
         PosterPath = dto.PosterPath,
         ReleaseDate = dto.ReleaseDate,
-        Season = dto.Season
+        Season = dto.Season,
+        Status = requireApproval ? RequestStatus.Pending : RequestStatus.Approved
       },
       cancellationToken).ConfigureAwait(false);
 
