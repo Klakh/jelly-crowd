@@ -583,6 +583,7 @@
   }
 
   function applyStaticText() {
+    document.getElementById('jcLogo').src = pluginUrl('JellyCrowd/Web/logo.png');
     document.getElementById('jcTitle').textContent = t('app_title');
     document.getElementById('jcSearchInput').placeholder = t('search_placeholder');
     document.getElementById('jcSearchButton').textContent = t('search_button');

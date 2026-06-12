@@ -136,6 +136,7 @@
 
   function init() {
     loadStrings().then(function () {
+      document.getElementById('jcMediaLogo').src = pluginUrl('JellyCrowd/Web/logo.png');
       document.getElementById('jcMediaTitle').textContent = t('my_media_title');
       setMessage(t('loading'));
       apiGet('JellyCrowd/Requests/Mine')

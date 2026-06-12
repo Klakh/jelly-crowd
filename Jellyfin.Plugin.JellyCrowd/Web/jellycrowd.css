@@ -17,6 +17,17 @@
   margin: 0;
 }
 
+.jellycrowd-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.jellycrowd-logo {
+  height: 1.8em;
+  border-radius: 0.25em;
+}
+
 .jellycrowd-search {
   display: flex;
   gap: 0.5em;

@@ -85,6 +85,11 @@ public class WebController : ControllerBase
       return "application/json; charset=utf-8";
     }
 
+    if (path.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+    {
+      return "image/png";
+    }
+
     return "application/octet-stream";
   }
 }

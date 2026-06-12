@@ -18,15 +18,23 @@ authentification et son thème.
 
 ## ✨ Fonctionnalités
 
-- 🍿 **Catalogue de découverte (TMDB)** — parcours et recherche de films/séries, y compris ce qui n'est pas
-  encore dans la bibliothèque, avec un marqueur « déjà disponible ».
-- 📝 **Requêtes utilisateur** — les utilisateurs demandent un média ; les requêtes arrivent dans une
-  **file d'attente admin** (approbation/refus). *(Intégration Radarr/Sonarr prévue ultérieurement.)*
-- 💾 **Quotas disque par utilisateur** — quota configurable (en octets) par utilisateur ; les requêtes
-  satisfaites consomment le quota, et les nouvelles requêtes sont bloquées au-delà.
-- 🎨 **Pages utilisateur intégrées** — UI thématisée via le plugin [Plugin Pages](https://github.com/IAmParadox27/jellyfin-plugin-pages).
+- 🍿 **Catalogue de découverte (TMDB)** — parcours/recherche de films & séries avec **filtres** (genres,
+  années & notes en double-sliders, tri), **survol** des affiches, et **fiche détaillée** (genres, durée,
+  synopsis, liens TMDB & IMDb). Les titres déjà présents sont marqués « disponible » et ouvrent la fiche Jellyfin.
+- 📝 **Requêtes** — demande d'un média via une **file d'attente admin** (approbation/refus). Les **séries
+  se demandent par saison**. *(Intégration Radarr/Sonarr possible ultérieurement.)*
+- 💾 **Quotas disque par utilisateur** — quota par défaut + **overrides par utilisateur** ; l'usage reflète la
+  taille réelle en bibliothèque ; au-delà, les requêtes sont bloquées (bouton grisé). **Limite de requêtes par
+  période** (jour/semaine/mois) configurable.
+- 🗑️ **Gestion des médias** — écran « Mes médias » où l'utilisateur demande la suppression ; un média marqué est
+  **supprimé du disque** après une **rétention** configurable (tâche planifiée).
+- 🔔 **Notifications** — événements de requête (créée / approuvée / disponible) vers **Discord** et/ou **e-mail (SMTP)**.
+- 🎨 **Intégration UI** — pages utilisateur thématisées via [Plugin Pages](https://github.com/IAmParadox27/jellyfin-plugin-pages),
+  liens + barre de quota injectés dans le bandeau (via [File Transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation)),
+  et page d'admin à onglets (Demandes / Quotas / Réglages / Notifications) accessible directement depuis le dashboard.
+- 🔄 **Mises à jour automatiques** via dépôt de plugin (voir Installation).
 
-> Pour le détail des phases de développement, voir [`ROADMAP.md`](./ROADMAP.md).
+> Pour l'état d'avancement, voir [`ROADMAP.md`](./ROADMAP.md).
 
 ## 📦 Pré-requis
 

@@ -7,12 +7,12 @@ Légende : ☐ à faire · ☑ fait · ◐ en cours
 
 ---
 
-## 📍 État actuel (point de reprise) — au 2026-06-11
+## 📍 État actuel (point de reprise) — au 2026-06-12
 
-- **Version publiée** : releases auto sur GitHub `Klakh/jelly-crowd` (dernière `v0.1.x`). Branche `main`, CI **verte**.
-- **Fait (code)** : M0, **M1** (catalogue + modal détails + Plugin Pages), **M2** (requêtes : store JSON, RequestsController, bouton Demander, « Mes requêtes », file admin), **M3** (`LibraryMatcher` + flag `Available` + `ReconcileTask`) et **M4** (quotas disque par user : `QuotaService`, enforcement 403, barre d'usage, overrides admin).
-- **En cours / prochaine action** : **M5 — Finition**. FAITS : nav directe, onglets, manifest de dépôt, **notifications Discord+email**, **catalogue enrichi** (filtres genres/années/notes en double-sliders, tri, survol des affiches, modal détaillé avec liens TMDB/IMDb). Reste : passe de thème/UX.
-- **Bloqué côté agent (à faire par l'utilisateur)** : **vérifier M3/M4/M5 sur une instance live**. M1+M2 validés ; barre d'usage + liste users vus. Reste : M3 (badge « Disponible » + réconciliation), M4 (refus 403 au-delà du quota), M5 (install via dépôt + nav directe + onglets).
+- **Version publiée** : releases auto sur GitHub `Klakh/jelly-crowd` (dernière `v0.5.x`). Branche `main`, CI **verte**.
+- **Fait (code, M0→M5)** : catalogue TMDB enrichi (filtres double-sliders genres/années/notes, tri, survol, fiche complète avec affiche + liens TMDB/IMDb, clic dispo → fiche Jellyfin) ; requêtes en file admin **par saison** ; quotas disque par user (overrides, barre d'usage, refus 403/bouton grisé) ; **limite de requêtes par période** ; disponibilité **temps réel** (`IRequestReconciler` sur `ItemAdded` + tâche 15 min) ; **« Mes médias » + suppression disque** après rétention (tâche) ; **notifications Discord/e-mail** ; **logo** ; pages user (Plugin Pages) + **liens/quota dans le bandeau** (File Transformation) + **page admin à onglets** (Demandes/Quotas/Réglages/Notifs) ; **manifest de dépôt** (MAJ auto).
+- **En cours / prochaine action** : **M6 — Catalogue avancé** (scroll infini + rangées de catégories : Top 10 plateformes, Best Sci-Fi…).
+- **Bloqué côté agent (à faire par l'utilisateur)** : vérifs live — suppression (destructif, tester avec rétention courte), header (sélecteur DOM à ajuster si besoin), séries par saison.
 
 ### Ce qui tourne déjà (vérifié en CI)
 - Pipeline complet : **CI** (`build.yml` : restore → build Release → `dotnet test` → tests JS `node --test` → package `.zip`) + **Release** (`release.yml` : versionning auto par mot-clé de commit `[major]`/`[minor]`/patch → tag + GitHub Release).
@@ -88,20 +88,26 @@ Objectif : limiter l'occupation disque par user et bloquer au-delà.
 - ☑ Affichage usage/quota côté user (barre sur « Mes requêtes ») + feedback « Quota dépassé » sur le bouton Demander. Helpers `formatBytes`/`quotaPercent` testés.
 - ☐ **Vérif (instance live)** : régler un quota bas pour un user, vérifier la barre d'usage, et qu'une requête au-delà du quota est refusée (403 → « Quota dépassé »).
 
-## M5 — Finition & distribution  ◐
+## M5 — Finition & distribution  ☑
 
-- ☑ Accès direct : page de config dans la nav du dashboard admin (`EnableInMainMenu`).
-- ☑ Onglets dans la config : Réglages / Quotas utilisateurs / Demandes.
-- ☑ **Manifest de dépôt plugin** (`manifest.json` à la racine, peuplé à chaque release par `release.yml`) + doc d'install dans le README.
-- ☑ i18n FR/EN sur les chaînes (onglets inclus).
-- ☐ Notifications (requête approuvée / disponible / quota atteint).
-- ☐ Thème & UX : passe d'affinage.
-- ☐ **Vérif (instance live)** : ajouter le dépôt `https://raw.githubusercontent.com/Klakh/jelly-crowd/main/manifest.json`, installer/mettre à jour depuis le catalogue, vérifier la nav directe + les onglets.
+- ☑ Accès direct : page de config dans la nav du dashboard admin (`EnableInMainMenu`), à onglets (Demandes / Quotas / Réglages / Notifications).
+- ☑ **Manifest de dépôt plugin** (`manifest.json`, peuplé à chaque release) + **logo** + doc d'install (MAJ auto).
+- ☑ i18n FR/EN.
+- ☑ **Notifications** (créée / approuvée / disponible) → Discord + e-mail (SMTP).
+- ☑ **Limite de requêtes par période**, **séries par saison**, **« Mes médias » + suppression disque** (rétention), **réconciliation temps réel** (ItemAdded), **liens/quota dans le bandeau** (File Transformation).
+- ☐ **Vérif (instance live)** : install via dépôt, suppression (rétention courte), header, saisons.
+
+## M6 — Catalogue avancé  ☐ ← PROCHAINE ÉTAPE
+
+Objectif : un catalogue « Netflix-like » plus riche.
+
+- ☐ **Scroll infini** : pagination TMDB (`page`) côté `Discover`/`Trending` + chargement au scroll (IntersectionObserver) côté catalogue.
+- ☐ **Rangées de catégories** intercalées : carrousels « Top 10 Netflix / Prime… » (TMDB `with_watch_providers` + `watch_region`), « Best Sci-Fi », etc. ; clic sur une plateforme → filtre par plateforme.
+- ☐ Endpoints/contrats : `with_watch_providers`, `watch_region`, listes de providers ; UI en rangées horizontales.
 
 ---
 
 ## Hors périmètre v1 (idées futures)
 
 - Intégration **Radarr/Sonarr** pour satisfaire les requêtes automatiquement.
-- Quotas par type de média / par durée de rétention.
 - Recommandations personnalisées, watchlists.

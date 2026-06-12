@@ -30,26 +30,40 @@ Ce n'est **pas** `jelly-quotas` (app externe React/Node à côté de Jellyfin) �
 
 ```
 Jellyfin.Plugin.JellyCrowd/
-  Plugin.cs                  # BasePlugin<PluginConfiguration>, IHasWebPages (page config admin)
-  PluginServiceRegistrator.cs# DI : enregistrement services + pages user (Plugin Pages)
+  Plugin.cs                  # BasePlugin<PluginConfiguration>, IHasWebPages (page config admin, EnableInMainMenu)
+  PluginServiceRegistrator.cs# DI : services + hosted services (pages + header injection + ItemAdded)
+  TransformationPatches.cs   # callback File Transformation (injecte header.js dans index.html)
   Configuration/
-    PluginConfiguration.cs   # clé TMDB, quota défaut, overrides par user, options d'estimation
-    configPage.html          # page de config admin (ressource embarquée)
-  Api/                       # contrôleurs ASP.NET ControllerBase (REST)
-    CatalogController.cs     # proxy TMDB + flag availability
-    RequestsController.cs    # create/list/approve/deny/fulfill
-    QuotaController.cs       # usage par user, get/set quotas
+    PluginConfiguration.cs   # TMDB, quotas + overrides, estimations, rate limit, rétention, Discord/SMTP
+    configPage.html          # page admin à onglets (Demandes/Quotas/Réglages/Notifications)
+  Api/                       # contrôleurs ASP.NET ControllerBase (REST, /JellyCrowd/...)
+    CatalogController.cs     # TMDB Trending/Search/Discover/Genres/Seasons/Details + flag Available + ItemId
+    RequestsController.cs    # create/mine/all/approve/deny/RequestDeletion (403 quota, 409 dup, 429 rate)
+    QuotaController.cs       # usage du user courant
+    WebController.cs         # sert les assets embarqués Web/ (anonyme)
   Services/
-    TmdbClient.cs            # HttpClient TMDB
-    LibraryMatcher.cs        # TMDB id <-> items biblio (ILibraryManager)
-    RequestStore.cs          # persistance SQLite
-    QuotaService.cs          # calcul usage + enforcement
-  Tasks/ReconcileTask.cs     # IScheduledTask : recalcul usage + résolution requêtes
-  Models/                    # DTOs (RequestRecord, QuotaInfo, CatalogItem...)
-  Web/                       # pages user-facing embarquées (HTML/JS/CSS)
+    TmdbClient.cs / TmdbResponseParser.cs   # API TMDB + parsing pur (testé)
+    LibraryMatcher.cs        # TMDB id -> item biblio (Exists/FindItemId/GetSizeBytes)
+    JsonRequestStore.cs      # persistance JSON (pas SQLite) dans le data path
+    QuotaService.cs          # usage (dédupliqué par titre) + enforcement
+    CurrentUserAccessor.cs   # user courant via IAuthorizationContext
+    NotificationService.cs / NotificationMessages.cs  # Discord + SMTP (+ builder pur testé)
+    MediaDeleter.cs          # suppression disque via ILibraryManager.DeleteItem
+    RequestReconciler.cs     # Approved -> Available quand le média arrive
+    PluginPageRegistrationService.cs  # (hosted) enregistre pages Plugin Pages + header injection (réflexion)
+    LibraryEventEntryPoint.cs # (hosted) ItemAdded -> reconcile temps réel (debounce)
+  Tasks/
+    ReconcileTask.cs         # IScheduledTask (15 min, backstop) -> RequestReconciler
+    DeletionTask.cs          # IScheduledTask (1 h) -> supprime les médias échus
+  Models/                    # DTOs (RequestRecord, CatalogItem, Genre, Season, QuotaInfo, *Dto, enums...)
+  Web/                       # assets user embarqués : catalog/requests/mymedia (.html/.js), header.js,
+                             # catalog.lib.js (logique pure testée), jellycrowd.css, logo.png, strings/{en,fr}.json
 
-Jellyfin.Plugin.JellyCrowd.Tests/  # projet xUnit ; tests exécutés en CI (dotnet test)
+Jellyfin.Plugin.JellyCrowd.Tests/  # xUnit (+ Moq + node:test pour le JS) ; exécuté en CI
 ```
+
+Persistance : **JSON** (`JsonRequestStore`, fichier dans le data path) — SQLite abandonné (dépendance native).
+Réconciliation : **temps réel** sur `ILibraryManager.ItemAdded` + tâche planifiée de secours.
 
 Racine : `CLAUDE.md`, `ROADMAP.md`, `README.md`, `LICENSE`, `build.yaml` (manifest plugin),
 `Directory.Build.props`, `.editorconfig`, `jellyfin.ruleset`, `.sln`.

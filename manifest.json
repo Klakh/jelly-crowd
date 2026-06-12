@@ -6,6 +6,7 @@
     "overview": "Browse a TMDB catalog, request titles through an admin approval queue, and enforce per-user disk quotas.",
     "owner": "Klakh",
     "category": "General",
+    "imageUrl": "https://raw.githubusercontent.com/Klakh/jelly-crowd/main/Jellyfin.Plugin.JellyCrowd/Web/logo.png",
     "versions": [
       {
         "version": "0.5.12.0",

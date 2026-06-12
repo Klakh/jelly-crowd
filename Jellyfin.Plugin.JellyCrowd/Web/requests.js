@@ -128,6 +128,7 @@
 
   function init() {
     loadStrings().then(function () {
+      document.getElementById('jcReqLogo').src = pluginUrl('JellyCrowd/Web/logo.png');
       document.getElementById('jcReqTitle').textContent = t('my_requests_title');
       setMessage(t('loading'));
 
