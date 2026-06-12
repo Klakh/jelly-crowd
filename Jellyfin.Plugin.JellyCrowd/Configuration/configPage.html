@@ -21,10 +21,10 @@
         <h2 class="sectionTitle">Jelly Crowd</h2>
 
         <div class="jcTabBar">
-          <button type="button" id="jcTabSettings" class="jcTab jcTabActive">Settings</button>
+          <button type="button" id="jcTabRequests" class="jcTab jcTabActive">Requests</button>
           <button type="button" id="jcTabQuotas" class="jcTab">User quotas</button>
+          <button type="button" id="jcTabSettings" class="jcTab">Settings</button>
           <button type="button" id="jcTabNotifications" class="jcTab">Notifications</button>
-          <button type="button" id="jcTabRequests" class="jcTab">Requests</button>
         </div>
 
         <form id="JellyCrowdConfigForm">
@@ -224,7 +224,7 @@
 
       document.querySelector('#JellyCrowdConfigPage')
         .addEventListener('pageshow', function () {
-          jcActivateTab('settings');
+          jcActivateTab('requests');
           Dashboard.showLoadingMsg();
           ApiClient.getPluginConfiguration(JellyCrowdConfig.pluginUniqueId).then(function (config) {
             var gib = JellyCrowdConfig.bytesPerGiB;

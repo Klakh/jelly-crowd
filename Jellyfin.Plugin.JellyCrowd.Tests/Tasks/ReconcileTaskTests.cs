@@ -4,14 +4,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.JellyCrowd.Models;
 using Jellyfin.Plugin.JellyCrowd.Services;
-using Jellyfin.Plugin.JellyCrowd.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Jellyfin.Plugin.JellyCrowd.Tests.Tasks;
 
 /// <summary>
-/// Tests for <see cref="ReconcileTask"/>.
+/// Tests for <see cref="RequestReconciler"/>.
 /// </summary>
 public sealed class ReconcileTaskTests : IDisposable
 {
@@ -36,9 +35,9 @@ public sealed class ReconcileTaskTests : IDisposable
   public async Task Execute_MarksApprovedAvailable_WhenInLibrary()
   {
     var id = await SeedApprovedAsync();
-    var task = new ReconcileTask(_store, new StubMatcher(true), new NoopNotificationService(), NullLogger<ReconcileTask>.Instance);
+    var reconciler = new RequestReconciler(_store, new StubMatcher(true), new NoopNotificationService(), NullLogger<RequestReconciler>.Instance);
 
-    await task.ExecuteAsync(new Progress<double>(), CancellationToken.None);
+    await reconciler.ReconcileAsync(CancellationToken.None);
 
     var updated = await _store.GetByIdAsync(id, CancellationToken.None);
     Assert.Equal(RequestStatus.Available, updated!.Status);
@@ -48,9 +47,9 @@ public sealed class ReconcileTaskTests : IDisposable
   public async Task Execute_LeavesApproved_WhenNotInLibrary()
   {
     var id = await SeedApprovedAsync();
-    var task = new ReconcileTask(_store, new StubMatcher(false), new NoopNotificationService(), NullLogger<ReconcileTask>.Instance);
+    var reconciler = new RequestReconciler(_store, new StubMatcher(false), new NoopNotificationService(), NullLogger<RequestReconciler>.Instance);
 
-    await task.ExecuteAsync(new Progress<double>(), CancellationToken.None);
+    await reconciler.ReconcileAsync(CancellationToken.None);
 
     var updated = await _store.GetByIdAsync(id, CancellationToken.None);
     Assert.Equal(RequestStatus.Approved, updated!.Status);

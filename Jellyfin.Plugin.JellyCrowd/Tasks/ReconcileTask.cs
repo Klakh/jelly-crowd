@@ -1,39 +1,27 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Plugin.JellyCrowd.Models;
 using Jellyfin.Plugin.JellyCrowd.Services;
 using MediaBrowser.Model.Tasks;
-using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.JellyCrowd.Tasks;
 
 /// <summary>
-/// Scheduled task that marks approved requests as <see cref="RequestStatus.Available"/> once the
-/// corresponding media appears in the Jellyfin library.
+/// Scheduled backstop that reconciles approved requests against the library (real-time reconciliation
+/// also happens on library item-added events).
 /// </summary>
 public sealed class ReconcileTask : IScheduledTask
 {
-  private readonly IRequestStore _store;
-  private readonly ILibraryMatcher _libraryMatcher;
-  private readonly INotificationService _notificationService;
-  private readonly ILogger<ReconcileTask> _logger;
+  private readonly IRequestReconciler _reconciler;
 
   /// <summary>
   /// Initializes a new instance of the <see cref="ReconcileTask"/> class.
   /// </summary>
-  /// <param name="store">The request store.</param>
-  /// <param name="libraryMatcher">The library matcher.</param>
-  /// <param name="notificationService">The notification service.</param>
-  /// <param name="logger">The logger.</param>
-  public ReconcileTask(IRequestStore store, ILibraryMatcher libraryMatcher, INotificationService notificationService, ILogger<ReconcileTask> logger)
+  /// <param name="reconciler">The request reconciler.</param>
+  public ReconcileTask(IRequestReconciler reconciler)
   {
-    _store = store;
-    _libraryMatcher = libraryMatcher;
-    _notificationService = notificationService;
-    _logger = logger;
+    _reconciler = reconciler;
   }
 
   /// <inheritdoc />
@@ -52,32 +40,8 @@ public sealed class ReconcileTask : IScheduledTask
   public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
   {
     ArgumentNullException.ThrowIfNull(progress);
-
-    var all = await _store.GetAllAsync(cancellationToken).ConfigureAwait(false);
-    var approved = all.Where(r => r.Status == RequestStatus.Approved).ToList();
-    var resolved = 0;
-
-    for (var i = 0; i < approved.Count; i++)
-    {
-      cancellationToken.ThrowIfCancellationRequested();
-
-      var request = approved[i];
-      var itemId = _libraryMatcher.FindItemId(request.MediaType, request.TmdbId);
-      if (itemId is not null)
-      {
-        await _store.MarkAvailableAsync(request.Id, itemId, cancellationToken).ConfigureAwait(false);
-        await _notificationService.NotifyRequestEventAsync(request, NotificationEvent.Available, cancellationToken).ConfigureAwait(false);
-        resolved++;
-      }
-
-      progress.Report((double)(i + 1) / approved.Count * 100);
-    }
-
-    if (resolved > 0)
-    {
-      _logger.LogInformation("Jelly Crowd reconcile: {Resolved} request(s) marked available.", resolved);
-    }
-
+    progress.Report(0);
+    await _reconciler.ReconcileAsync(cancellationToken).ConfigureAwait(false);
     progress.Report(100);
   }
 
@@ -89,7 +53,7 @@ public sealed class ReconcileTask : IScheduledTask
       new TaskTriggerInfo
       {
         Type = TaskTriggerInfoType.IntervalTrigger,
-        IntervalTicks = TimeSpan.FromHours(6).Ticks
+        IntervalTicks = TimeSpan.FromMinutes(15).Ticks
       }
     };
   }

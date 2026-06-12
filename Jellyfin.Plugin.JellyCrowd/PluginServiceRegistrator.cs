@@ -30,6 +30,8 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
       sp.GetRequiredService<IRequestStore>(),
       sp.GetRequiredService<ILibraryMatcher>(),
       sp.GetRequiredService<Func<PluginConfiguration>>()));
+    serviceCollection.AddSingleton<IRequestReconciler, RequestReconciler>();
     serviceCollection.AddHostedService<PluginPageRegistrationService>();
+    serviceCollection.AddHostedService<LibraryEventEntryPoint>();
   }
 }
