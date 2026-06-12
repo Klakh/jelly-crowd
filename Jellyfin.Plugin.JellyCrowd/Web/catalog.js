@@ -152,15 +152,17 @@
     hover.className = 'jellycrowd-hover';
     var rating = lib.formatRating(item.VoteAverage);
     var year = lib.yearOf(item);
-    hover.textContent = [rating ? '★ ' + rating : '', year].filter(Boolean).join('  ·  ');
+    var hoverTitle = document.createElement('div');
+    hoverTitle.className = 'jellycrowd-hover-title';
+    hoverTitle.textContent = item.Title || '';
+    var hoverMeta = document.createElement('div');
+    hoverMeta.className = 'jellycrowd-hover-meta';
+    hoverMeta.textContent = [rating ? '★ ' + rating : '', year].filter(Boolean).join('  ·  ');
+    hover.appendChild(hoverTitle);
+    hover.appendChild(hoverMeta);
     posterWrap.appendChild(hover);
 
     card.appendChild(posterWrap);
-
-    var title = document.createElement('div');
-    title.className = 'jellycrowd-card-title';
-    title.textContent = lib.formatTitle(item);
-    card.appendChild(title);
 
     if (!item.Available) {
       if (quotaExceeded) {
@@ -402,7 +404,6 @@
   var gridPage = 0;
   var feedLoading = false;
   var feedExhausted = false;
-  var rowQueue = [];
   var feedObserver = null;
 
   function setMessage(text) {
@@ -454,21 +455,19 @@
   function feedEl() { return document.getElementById('jcFeed'); }
 
   function appendGridBlock(page) {
-    var grid = document.createElement('div');
-    grid.className = 'jellycrowd-grid';
-    feedEl().appendChild(grid);
+    var grid = document.getElementById('jcGridMain');
     return apiGet(pagePath(page)).then(function (items) {
       if (!items || items.length === 0) {
         feedExhausted = true;
-        grid.remove();
-        if (page === 1 && feedEl().childElementCount === 0) { setMessage(t('no_results')); }
+        if (grid && grid.childElementCount === 0 && !feedEl().querySelector('.jellycrowd-row')) {
+          setMessage(t('no_results'));
+        }
         return;
       }
       setMessage('');
       items.forEach(function (item) { grid.appendChild(renderCard(item)); });
     }).catch(function (e) {
       feedExhausted = true;
-      grid.remove();
       if (page === 1) { showError(e); }
     });
   }
@@ -536,9 +535,6 @@
       return;
     }
     feedLoading = true;
-    if (rowQueue.length) {
-      appendRowBlock(rowQueue.shift());
-    }
     gridPage++;
     appendGridBlock(gridPage).then(function () {
       feedLoading = false;
@@ -565,13 +561,22 @@
     feedExhausted = false;
     gridPage = 0;
     feedEl().innerHTML = '';
+    var rows;
     if (searchQuery) {
       document.getElementById('jcSectionTitle').textContent = t('results_title');
-      rowQueue = [];
+      rows = [];
     } else {
       document.getElementById('jcSectionTitle').textContent = t('browse_title');
-      rowQueue = hasActiveFilters() ? [] : buildRowQueue();
+      rows = hasActiveFilters() ? [] : buildRowQueue();
     }
+
+    // Category rows are rendered once, up top; the grid below is a single element that all pages fill.
+    rows.forEach(function (def) { appendRowBlock(def); });
+    var grid = document.createElement('div');
+    grid.className = 'jellycrowd-grid';
+    grid.id = 'jcGridMain';
+    feedEl().appendChild(grid);
+
     setMessage(t('loading'));
     ensureObserver();
     loadNext();

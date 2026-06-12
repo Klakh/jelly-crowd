@@ -8,10 +8,11 @@
     .jcTab { padding: 0.5em 1em; border: none; border-radius: 0.3em; cursor: pointer;
              background: rgba(127, 127, 127, 0.15); color: inherit; }
     .jcTab.jcTabActive { background: #00a4dc; color: #fff; }
-    .jcAdminRow { display: flex; align-items: center; gap: 1em; padding: 0.6em 0.8em; border-radius: 0.5em; background: rgba(127, 127, 127, 0.1); margin-bottom: 0.6em; }
-    .jcAdminRow > .jcAdminTitle { flex: 1; min-width: 0; }
+    .jcAdminRow { display: flex; align-items: center; gap: 1.2em; padding: 0.7em 0.9em; border-radius: 0.5em; background: rgba(127, 127, 127, 0.1); margin-bottom: 0.7em; }
+    .jcAdminMain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2em; }
+    .jcAdminTitleLine { font-weight: 600; }
+    .jcAdminSub { opacity: 0.65; font-size: 0.82em; }
     .jcAdminPoster { width: 2.8em; height: 4.2em; object-fit: cover; border-radius: 0.3em; flex-shrink: 0; background: rgba(127,127,127,0.2); }
-    .jcAdminYear { opacity: 0.7; font-size: 0.85em; }
     .jcStatus { font-size: 0.8em; padding: 0.2em 0.7em; border-radius: 1em; background: rgba(127, 127, 127, 0.3); white-space: nowrap; }
     .jcStatus-pending { background: #b58900; color: #fff; }
     .jcStatus-approved { background: #268bd2; color: #fff; }
@@ -303,10 +304,17 @@
       (function () {
         var SUPPORTED = ['en', 'fr'];
         var strings = {};
+        var usersById = {};
 
         function lang() {
           var code = (navigator.language || 'en').slice(0, 2).toLowerCase();
           return SUPPORTED.indexOf(code) >= 0 ? code : 'en';
+        }
+
+        function loadUsers() {
+          return ApiClient.getUsers()
+            .then(function (users) { (users || []).forEach(function (u) { usersById[u.Id] = u.Name; }); })
+            .catch(function () { /* names are best-effort */ });
         }
 
         function t(key) {
@@ -386,11 +394,23 @@
               row.appendChild(ph);
             }
 
-            var label = document.createElement('span');
-            label.className = 'jcAdminTitle';
+            var main = document.createElement('div');
+            main.className = 'jcAdminMain';
+
+            var titleLine = document.createElement('div');
+            titleLine.className = 'jcAdminTitleLine';
             var year = request.ReleaseDate ? (' (' + String(request.ReleaseDate).slice(0, 4) + ')') : '';
-            label.textContent = request.Title + year + (request.Season ? ' · S' + request.Season : '');
-            row.appendChild(label);
+            titleLine.textContent = request.Title + year + (request.Season ? ' · S' + request.Season : '');
+            main.appendChild(titleLine);
+
+            var sub = document.createElement('div');
+            sub.className = 'jcAdminSub';
+            var who = usersById[request.UserId] || '?';
+            var when = request.RequestedAt ? new Date(request.RequestedAt).toLocaleString() : '';
+            sub.textContent = t('admin_requested_by') + ' ' + who + (when ? ' · ' + when : '');
+            main.appendChild(sub);
+
+            row.appendChild(main);
 
             var statusKey = window.JellyCrowdLib ? window.JellyCrowdLib.statusLabelKey(request.Status) : 'status_pending';
             var status = document.createElement('span');
@@ -425,7 +445,7 @@
         }
 
         document.querySelector('#JellyCrowdConfigPage').addEventListener('pageshow', function () {
-          loadStrings().then(ensureLib).then(function () {
+          loadStrings().then(ensureLib).then(loadUsers).then(function () {
             applyLabels();
             load();
           });
