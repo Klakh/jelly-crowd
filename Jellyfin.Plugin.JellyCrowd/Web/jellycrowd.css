@@ -63,6 +63,41 @@
   gap: 1em;
 }
 
+.jellycrowd-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+}
+
+.jellycrowd-sentinel {
+  height: 1px;
+}
+
+.jellycrowd-row-title {
+  margin: 0 0 0.6em;
+  font-size: 1.1em;
+}
+
+.jellycrowd-row-strip {
+  display: flex;
+  gap: 1em;
+  overflow-x: auto;
+  padding-bottom: 0.6em;
+  scrollbar-width: thin;
+}
+
+.jellycrowd-row-strip .jellycrowd-card {
+  width: 140px;
+  flex: 0 0 auto;
+}
+
+.jellycrowd-row-strip .jellycrowd-chip {
+  flex: 0 0 auto;
+  align-self: center;
+  font-size: 0.95em;
+  padding: 0.5em 1em;
+}
+
 .jellycrowd-card {
   position: relative;
   display: flex;

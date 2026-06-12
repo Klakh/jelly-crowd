@@ -24,7 +24,8 @@
     maxYear: MAX_YEAR,
     minRating: 0,
     maxRating: 10,
-    sortBy: 'popularity'
+    sortBy: 'popularity',
+    watchProviders: ''
   };
 
   function fullLocale() {
@@ -373,7 +374,23 @@
     document.addEventListener('keydown', onKey);
   }
 
-  // ---------- results ----------
+  // ---------- feed (infinite scroll + interleaved category rows) ----------
+
+  var REGION = (fullLocale().split('-')[1] || 'US').toUpperCase();
+  var PLATFORMS = [
+    { id: 8, name: 'Netflix' },
+    { id: 119, name: 'Prime Video' },
+    { id: 337, name: 'Disney+' },
+    { id: 350, name: 'Apple TV+' },
+    { id: 1899, name: 'Max' }
+  ];
+
+  var searchQuery = '';
+  var gridPage = 0;
+  var feedLoading = false;
+  var feedExhausted = false;
+  var rowQueue = [];
+  var feedObserver = null;
 
   function setMessage(text) {
     var el = document.getElementById('jcMessage');
@@ -385,60 +402,165 @@
     }
   }
 
-  function renderItems(items) {
-    var grid = document.getElementById('jcGrid');
-    grid.innerHTML = '';
-    if (!items || items.length === 0) {
-      setMessage(t('no_results'));
-      return;
-    }
-    setMessage('');
-    items.forEach(function (item) { grid.appendChild(renderCard(item)); });
-  }
-
   function showError(error) {
-    document.getElementById('jcGrid').innerHTML = '';
     setMessage(t(lib.errorKey(error && error.status)));
   }
 
-  function discoverPath() {
-    var p = 'JellyCrowd/Catalog/Discover?mediaType=' + filters.mediaType
-      + '&language=' + encodeURIComponent(fullLocale())
-      + '&sortBy=' + encodeURIComponent(filters.sortBy);
-    if (filters.genres.length) {
-      p += '&genres=' + encodeURIComponent(filters.genres.join(','));
+  function hasActiveFilters() {
+    return filters.genres.length > 0 || filters.minYear > MIN_YEAR || filters.maxYear < MAX_YEAR
+      || filters.minRating > 0 || filters.maxRating < 10 || filters.sortBy !== 'popularity'
+      || !!filters.watchProviders;
+  }
+
+  function baseDiscover() {
+    return 'JellyCrowd/Catalog/Discover?mediaType=' + filters.mediaType
+      + '&language=' + encodeURIComponent(fullLocale());
+  }
+
+  function pagePath(page) {
+    if (searchQuery) {
+      return 'JellyCrowd/Catalog/Search?query=' + encodeURIComponent(searchQuery)
+        + '&language=' + encodeURIComponent(fullLocale()) + '&page=' + page;
     }
-    if (filters.minYear > MIN_YEAR) {
-      p += '&minYear=' + filters.minYear;
-    }
-    if (filters.maxYear < MAX_YEAR) {
-      p += '&maxYear=' + filters.maxYear;
-    }
-    if (filters.minRating > 0) {
-      p += '&minRating=' + filters.minRating;
-    }
-    if (filters.maxRating < 10) {
-      p += '&maxRating=' + filters.maxRating;
+    var p = baseDiscover() + '&sortBy=' + encodeURIComponent(filters.sortBy) + '&page=' + page;
+    if (filters.genres.length) { p += '&genres=' + encodeURIComponent(filters.genres.join(',')); }
+    if (filters.minYear > MIN_YEAR) { p += '&minYear=' + filters.minYear; }
+    if (filters.maxYear < MAX_YEAR) { p += '&maxYear=' + filters.maxYear; }
+    if (filters.minRating > 0) { p += '&minRating=' + filters.minRating; }
+    if (filters.maxRating < 10) { p += '&maxRating=' + filters.maxRating; }
+    if (filters.watchProviders) {
+      p += '&watchProviders=' + encodeURIComponent(filters.watchProviders) + '&watchRegion=' + encodeURIComponent(REGION);
     }
     return p;
   }
 
-  function loadDiscover() {
-    document.getElementById('jcSectionTitle').textContent = t('browse_title');
+  function providerRowPath(id) {
+    return baseDiscover() + '&sortBy=popularity&page=1&watchProviders=' + id + '&watchRegion=' + encodeURIComponent(REGION);
+  }
+
+  function feedEl() { return document.getElementById('jcFeed'); }
+
+  function appendGridBlock(page) {
+    var grid = document.createElement('div');
+    grid.className = 'jellycrowd-grid';
+    feedEl().appendChild(grid);
+    return apiGet(pagePath(page)).then(function (items) {
+      if (!items || items.length === 0) {
+        feedExhausted = true;
+        grid.remove();
+        if (page === 1 && feedEl().childElementCount === 0) { setMessage(t('no_results')); }
+        return;
+      }
+      setMessage('');
+      items.forEach(function (item) { grid.appendChild(renderCard(item)); });
+    }).catch(function (e) {
+      feedExhausted = true;
+      grid.remove();
+      if (page === 1) { showError(e); }
+    });
+  }
+
+  function appendRowBlock(def) {
+    var section = document.createElement('div');
+    section.className = 'jellycrowd-row';
+    var title = document.createElement('h3');
+    title.className = 'jellycrowd-row-title';
+    title.textContent = def.title;
+    section.appendChild(title);
+    var strip = document.createElement('div');
+    strip.className = 'jellycrowd-row-strip';
+    section.appendChild(strip);
+    feedEl().appendChild(section);
+
+    if (def.kind === 'platforms') {
+      PLATFORMS.forEach(function (platform) {
+        var chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'jellycrowd-chip';
+        chip.textContent = platform.name;
+        chip.addEventListener('click', function () {
+          filters.watchProviders = String(platform.id);
+          resetFeed();
+        });
+        strip.appendChild(chip);
+      });
+      return;
+    }
+
+    apiGet(def.path)
+      .then(function (items) { (items || []).slice(0, 20).forEach(function (item) { strip.appendChild(renderCard(item)); }); })
+      .catch(function () { section.remove(); });
+  }
+
+  function buildRowQueue() {
+    var sciFi = filters.mediaType === 'tv' ? '10765' : '878';
+    return [
+      { kind: 'platforms', title: t('streaming_platforms') },
+      { kind: 'path', title: PLATFORMS[0].name, path: providerRowPath(8) },
+      { kind: 'path', title: PLATFORMS[1].name, path: providerRowPath(119) },
+      { kind: 'path', title: PLATFORMS[2].name, path: providerRowPath(337) },
+      { kind: 'path', title: t('row_toprated'), path: baseDiscover() + '&sortBy=rating&page=1' },
+      { kind: 'path', title: t('row_scifi'), path: baseDiscover() + '&sortBy=popularity&page=1&genres=' + sciFi }
+    ];
+  }
+
+  function sentinelVisible() {
+    var rect = document.getElementById('jcSentinel').getBoundingClientRect();
+    return rect.top < (window.innerHeight || document.documentElement.clientHeight) + 400;
+  }
+
+  function loadNext() {
+    if (feedLoading || feedExhausted) {
+      return;
+    }
+    feedLoading = true;
+    if (rowQueue.length) {
+      appendRowBlock(rowQueue.shift());
+    }
+    gridPage++;
+    appendGridBlock(gridPage).then(function () {
+      feedLoading = false;
+      if (!feedExhausted && sentinelVisible()) {
+        loadNext();
+      }
+    });
+  }
+
+  function ensureObserver() {
+    if (feedObserver) {
+      return;
+    }
+    feedObserver = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) {
+        loadNext();
+      }
+    }, { rootMargin: '400px' });
+    feedObserver.observe(document.getElementById('jcSentinel'));
+  }
+
+  function resetFeed() {
+    feedLoading = false;
+    feedExhausted = false;
+    gridPage = 0;
+    feedEl().innerHTML = '';
+    if (searchQuery) {
+      document.getElementById('jcSectionTitle').textContent = t('results_title');
+      rowQueue = [];
+    } else {
+      document.getElementById('jcSectionTitle').textContent = t('browse_title');
+      rowQueue = hasActiveFilters() ? [] : buildRowQueue();
+    }
     setMessage(t('loading'));
-    apiGet(discoverPath()).then(renderItems).catch(showError);
+    ensureObserver();
+    loadNext();
   }
 
   function search(query) {
-    if (!query) {
-      loadDiscover();
-      return;
+    searchQuery = query || '';
+    if (!searchQuery) {
+      filters.watchProviders = '';
     }
-    document.getElementById('jcSectionTitle').textContent = t('results_title');
-    setMessage(t('loading'));
-    apiGet('JellyCrowd/Catalog/Search?query=' + encodeURIComponent(query) + '&language=' + encodeURIComponent(fullLocale()))
-      .then(renderItems)
-      .catch(showError);
+    resetFeed();
   }
 
   // ---------- filters UI ----------
@@ -500,7 +622,7 @@
     dualSlider(document.getElementById('jcYear'), {
       min: MIN_YEAR, max: MAX_YEAR, step: 1, low: filters.minYear, high: filters.maxYear,
       format: function (v) { return String(Math.round(v)); },
-      onChange: function (lo, hi) { filters.minYear = Math.round(lo); filters.maxYear = Math.round(hi); loadDiscover(); }
+      onChange: function (lo, hi) { filters.minYear = Math.round(lo); filters.maxYear = Math.round(hi); resetFeed(); }
     });
   }
 
@@ -508,7 +630,7 @@
     dualSlider(document.getElementById('jcRating'), {
       min: 0, max: 10, step: 0.5, low: filters.minRating, high: filters.maxRating,
       format: function (v) { return Number(v).toFixed(1); },
-      onChange: function (lo, hi) { filters.minRating = lo; filters.maxRating = hi; loadDiscover(); }
+      onChange: function (lo, hi) { filters.minRating = lo; filters.maxRating = hi; resetFeed(); }
     });
   }
 
@@ -522,7 +644,7 @@
       select.appendChild(opt);
     });
     select.value = filters.sortBy;
-    select.addEventListener('change', function () { filters.sortBy = select.value; loadDiscover(); });
+    select.addEventListener('change', function () { filters.sortBy = select.value; resetFeed(); });
   }
 
   function renderGenres(genres) {
@@ -543,7 +665,7 @@
           filters.genres.push(id);
           chip.classList.add('jellycrowd-chip-active');
         }
-        loadDiscover();
+        resetFeed();
       });
       container.appendChild(chip);
     });
@@ -564,7 +686,7 @@
     document.getElementById('jcTypeMovie').classList.toggle('jellycrowd-chip-active', type === 'movie');
     document.getElementById('jcTypeTv').classList.toggle('jellycrowd-chip-active', type === 'tv');
     loadGenres();
-    loadDiscover();
+    resetFeed();
   }
 
   function resetFilters() {
@@ -574,12 +696,14 @@
     filters.minRating = 0;
     filters.maxRating = 10;
     filters.sortBy = 'popularity';
+    filters.watchProviders = '';
+    searchQuery = '';
     document.getElementById('jcSort').value = 'popularity';
     document.getElementById('jcSearchInput').value = '';
     setupYearSlider();
     setupRatingSlider();
     loadGenres();
-    loadDiscover();
+    resetFeed();
   }
 
   function applyStaticText() {
@@ -620,7 +744,7 @@
         .catch(function () { /* quota check is best-effort */ })
         .then(function () {
           loadGenres();
-          loadDiscover();
+          resetFeed();
         });
     });
   }
