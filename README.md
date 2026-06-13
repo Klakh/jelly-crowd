@@ -29,9 +29,9 @@ authentification et son thème.
 - 🗑️ **Gestion des médias** — écran « Mes médias » où l'utilisateur demande la suppression ; un média marqué est
   **supprimé du disque** après une **rétention** configurable (tâche planifiée).
 - 🔔 **Notifications** — événements de requête (créée / approuvée / disponible) vers **Discord** et/ou **e-mail (SMTP)**.
-- 🎨 **Intégration UI** — pages utilisateur thématisées via [Plugin Pages](https://github.com/IAmParadox27/jellyfin-plugin-pages),
-  liens + barre de quota injectés dans le bandeau (via [File Transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation)),
-  et page d'admin à onglets (Demandes / Quotas / Réglages / Notifications) accessible directement depuis le dashboard.
+- 🎨 **Intégration UI** — onglets Catalogue / Mes requêtes + barre de quota injectés dans le bandeau, et pages
+  utilisateur hébergées par Jelly Crowd lui-même (un seul plugin requis : [File Transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation)),
+  plus une page d'admin à onglets (Demandes / Quotas / Réglages / Notifications) accessible directement depuis le dashboard.
 - 🔄 **Mises à jour automatiques** via dépôt de plugin (voir Installation).
 
 > Pour l'état d'avancement, voir [`ROADMAP.md`](./ROADMAP.md).
@@ -39,9 +39,9 @@ authentification et son thème.
 ## 📦 Pré-requis
 
 - **Jellyfin 10.11.x**
-- Plugins [**Plugin Pages**](https://github.com/IAmParadox27/jellyfin-plugin-pages) et
-  [**File Transformation**](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation)
-  (dépôt : `https://www.iamparadox.dev/jellyfin/plugins/manifest.json`)
+- Le plugin [**File Transformation**](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation)
+  (dépôt : `https://www.iamparadox.dev/jellyfin/plugins/manifest.json`) — seule dépendance, pour injecter
+  l'interface dans le client web. (Plugin Pages n'est plus requis : Jelly Crowd héberge ses propres pages.)
 - Une **clé API TMDB** (gratuite) pour le catalogue.
 
 ## 🚀 Installation

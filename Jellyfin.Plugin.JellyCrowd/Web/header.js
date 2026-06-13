@@ -1,8 +1,11 @@
 /*
- * Jelly Crowd — header injection.
- * Loaded into the Jellyfin web client (via File Transformation) to add Catalog / My Requests links
- * and a compact quota bar into the top header. The header DOM is not a public contract, so the
- * selectors below may need tweaking per Jellyfin version.
+ * Jelly Crowd — web client shell.
+ * Injected into the Jellyfin web client (via the File Transformation plugin). Adds Catalog /
+ * My Requests entries and a compact quota bar to the top header, and hosts our user pages itself
+ * in a full-screen overlay with its own tab bar — so Jelly Crowd no longer depends on the
+ * Plugin Pages plugin. Pages render inline (not in an iframe), so window.ApiClient and the active
+ * theme are available to them as before. The header DOM is not a public contract, so the selectors
+ * below may need tweaking per Jellyfin version.
  */
 (function () {
   'use strict';
@@ -10,6 +13,16 @@
   var SUPPORTED = ['en', 'fr'];
   var strings = {};
   var cfgLang = 'auto';
+
+  // The user pages we host. Order defines the overlay tab order.
+  var VIEWS = [
+    { id: 'catalog', file: 'catalog.html', labelKey: 'nav_catalog' },
+    { id: 'requests', file: 'requests.html', labelKey: 'nav_requests' },
+    { id: 'mymedia', file: 'mymedia.html', labelKey: 'my_media_title' }
+  ];
+
+  var overlay = null;
+  var viewHost = null;
 
   function getUrl(p) {
     return (window.ApiClient && window.ApiClient.getUrl) ? window.ApiClient.getUrl(p) : '/' + p;
@@ -24,15 +37,15 @@
     return SUPPORTED.indexOf(code) >= 0 ? code : 'en';
   }
 
+  function t(key) {
+    return Object.prototype.hasOwnProperty.call(strings, key) ? strings[key] : key;
+  }
+
   function loadConfigLang() {
     return fetch(getUrl('JellyCrowd/Settings/Language'))
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) { if (d && d.Language) { cfgLang = String(d.Language).toLowerCase(); } })
       .catch(function () { /* keep 'auto' on failure */ });
-  }
-
-  function t(key) {
-    return Object.prototype.hasOwnProperty.call(strings, key) ? strings[key] : key;
   }
 
   function loadStrings() {
@@ -42,15 +55,124 @@
       .catch(function () { strings = {}; });
   }
 
-  function pageHash(file) {
-    return '#/userpluginsettings.html?pageUrl=' + encodeURIComponent('/JellyCrowd/Web/' + file);
+  // ---------- overlay app ----------
+
+  // Re-run <script> tags found in an injected fragment: nodes added via innerHTML do not execute.
+  function executeScripts(container) {
+    var scripts = container.querySelectorAll('script');
+    for (var i = 0; i < scripts.length; i++) {
+      var old = scripts[i];
+      var fresh = document.createElement('script');
+      for (var a = 0; a < old.attributes.length; a++) {
+        fresh.setAttribute(old.attributes[a].name, old.attributes[a].value);
+      }
+      if (!old.src) {
+        fresh.textContent = old.textContent;
+      }
+      old.parentNode.replaceChild(fresh, old);
+    }
   }
 
-  function navButton(label, file) {
-    var a = document.createElement('a');
-    a.textContent = label;
-    a.href = pageHash(file);
-    a.style.cssText = 'margin:0 .5em;color:inherit;text-decoration:none;font-size:.9em;cursor:pointer;align-self:center;white-space:nowrap;';
+  function ensureOverlay() {
+    if (overlay) {
+      return;
+    }
+    overlay = document.createElement('div');
+    overlay.className = 'jellycrowd-overlay';
+    overlay.style.display = 'none';
+
+    var bar = document.createElement('div');
+    bar.className = 'jellycrowd-overlay-bar';
+
+    var tabs = document.createElement('div');
+    tabs.className = 'jellycrowd-overlay-tabs';
+    VIEWS.forEach(function (v) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'jellycrowd-overlay-tab';
+      b.textContent = t(v.labelKey);
+      b.addEventListener('click', function () { showView(v.id); });
+      v.tab = b;
+      tabs.appendChild(b);
+    });
+
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'jellycrowd-overlay-close';
+    close.setAttribute('aria-label', t('close'));
+    close.textContent = '✕';
+    close.addEventListener('click', hideOverlay);
+
+    bar.appendChild(tabs);
+    bar.appendChild(close);
+
+    viewHost = document.createElement('div');
+    viewHost.className = 'jellycrowd-overlay-views';
+
+    overlay.appendChild(bar);
+    overlay.appendChild(viewHost);
+    document.body.appendChild(overlay);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && overlay.style.display !== 'none') {
+        hideOverlay();
+      }
+    });
+  }
+
+  function showView(id) {
+    ensureOverlay();
+    var view = null;
+    VIEWS.forEach(function (v) { if (v.id === id) { view = v; } });
+    if (!view) {
+      return;
+    }
+
+    overlay.style.display = '';
+    VIEWS.forEach(function (v) {
+      if (v.container) {
+        v.container.style.display = (v.id === id) ? '' : 'none';
+      }
+      if (v.tab) {
+        v.tab.classList.toggle('jellycrowd-overlay-tab-active', v.id === id);
+      }
+    });
+
+    if (view.container) {
+      return; // already loaded; just shown above
+    }
+
+    var container = document.createElement('div');
+    container.className = 'jellycrowd-view';
+    view.container = container;
+    viewHost.appendChild(container);
+
+    fetch(getUrl('JellyCrowd/Web/' + view.file))
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (html) {
+        container.innerHTML = html;
+        executeScripts(container);
+      })
+      .catch(function () { container.textContent = t('error_generic'); });
+  }
+
+  function hideOverlay() {
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+  }
+
+  // Let our pages (e.g. the requests quota bar) switch views without touching the URL hash.
+  window.jellyCrowdShowView = showView;
+
+  // ---------- header injection ----------
+
+  function navButton(labelKey, viewId) {
+    var a = document.createElement('button');
+    a.type = 'button';
+    a.textContent = t(labelKey);
+    a.style.cssText = 'margin:0 .5em;color:inherit;background:none;border:none;font-size:.9em;cursor:pointer;align-self:center;white-space:nowrap;';
+    a.addEventListener('click', function () { showView(viewId); });
     return a;
   }
 
@@ -66,9 +188,7 @@
     var box = document.createElement('span');
     box.style.cssText = 'display:inline-flex;flex-direction:column;justify-content:center;min-width:8em;margin:0 .6em;font-size:.7em;cursor:pointer;';
     box.title = t('my_media_title');
-    box.addEventListener('click', function () {
-      window.location.hash = pageHash('mymedia.html');
-    });
+    box.addEventListener('click', function () { showView('mymedia'); });
     var label = document.createElement('span');
     var track = document.createElement('span');
     track.style.cssText = 'height:.35em;border-radius:.2em;background:rgba(255,255,255,.2);overflow:hidden;display:block;margin-top:.2em;';
@@ -104,8 +224,8 @@
     var wrap = document.createElement('span');
     wrap.className = 'jcHeaderBtns';
     wrap.style.cssText = 'display:inline-flex;align-items:center;';
-    wrap.appendChild(navButton(t('nav_catalog'), 'catalog.html'));
-    wrap.appendChild(navButton(t('nav_requests'), 'requests.html'));
+    wrap.appendChild(navButton('nav_catalog', 'catalog'));
+    wrap.appendChild(navButton('nav_requests', 'requests'));
     wrap.appendChild(buildQuota());
     host.insertBefore(wrap, host.firstChild);
   }
@@ -118,6 +238,8 @@
     var observer = new MutationObserver(function () { tryInsert(); });
     observer.observe(document.body, { childList: true, subtree: true });
     tryInsert();
+    // Any real navigation (Jellyfin menu, opening a library item) closes our overlay.
+    window.addEventListener('hashchange', hideOverlay);
   }
 
   loadConfigLang().then(loadStrings).then(start);

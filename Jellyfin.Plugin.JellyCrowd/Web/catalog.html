@@ -1,8 +1,8 @@
 <!--
-  Jelly Crowd catalog page. Served by WebController and loaded by Plugin Pages, which fetches this
-  file and injects it as a document fragment into the Jellyfin web client. It must therefore be a
-  fragment (no <html>/<head>/<body>) and reference its assets via absolute URLs (ApiClient.getUrl),
-  since relative paths would resolve against /web/ and 404.
+  Jelly Crowd catalog page. Served by WebController and loaded by our own web shell (header.js),
+  which fetches this file and injects it as a document fragment into the Jellyfin web client. It
+  must therefore be a fragment (no <html>/<head>/<body>) and reference its assets via absolute URLs
+  (ApiClient.getUrl), since relative paths would resolve against /web/ and 404.
 -->
 <div id="jellyCrowdApp" class="jellycrowd">
   <header class="jellycrowd-header">

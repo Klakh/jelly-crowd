@@ -4,6 +4,74 @@
   margin: 0 auto;
 }
 
+/* Full-screen overlay that hosts the user pages (Jelly Crowd's own tabbed shell). */
+.jellycrowd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--theme-body-background, #101013);
+}
+
+.jellycrowd-overlay-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0.4em 0.8em;
+  background: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.jellycrowd-overlay-tabs {
+  display: flex;
+  gap: 0.25em;
+  flex-wrap: wrap;
+}
+
+.jellycrowd-overlay-tab {
+  padding: 0.5em 1em;
+  border: none;
+  border-radius: 0.3em;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.95em;
+}
+
+.jellycrowd-overlay-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.jellycrowd-overlay-tab-active {
+  background: #00a4dc;
+  color: #fff;
+}
+
+.jellycrowd-overlay-close {
+  flex: 0 0 auto;
+  width: 2em;
+  height: 2em;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+  cursor: pointer;
+  font-size: 1em;
+  line-height: 1;
+}
+
+.jellycrowd-overlay-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.jellycrowd-overlay-views {
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
 .jellycrowd-header {
   display: flex;
   flex-wrap: wrap;

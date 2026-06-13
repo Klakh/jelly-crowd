@@ -134,11 +134,15 @@
       return;
     }
 
-    // Clicking the quota opens the "My media" page to manage/delete owned titles.
+    // Clicking the quota opens the "My media" view to manage/delete owned titles.
     el.classList.add('jellycrowd-quota-clickable');
     el.title = t('my_media_title');
     el.onclick = function () {
-      window.location.hash = '#/userpluginsettings.html?pageUrl=' + encodeURIComponent('/JellyCrowd/Web/mymedia.html');
+      if (typeof window.jellyCrowdShowView === 'function') {
+        window.jellyCrowdShowView('mymedia');
+      } else {
+        window.location.hash = '#/userpluginsettings.html?pageUrl=' + encodeURIComponent('/JellyCrowd/Web/mymedia.html');
+      }
     };
 
     var unlimited = info.Unlimited || info.QuotaBytes <= 0;
