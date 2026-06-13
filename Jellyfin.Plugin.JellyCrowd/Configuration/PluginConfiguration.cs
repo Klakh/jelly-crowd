@@ -35,6 +35,7 @@ public class PluginConfiguration : BasePluginConfiguration
     SmtpPassword = string.Empty;
     SmtpFromAddress = string.Empty;
     NotificationEmailTo = string.Empty;
+    SmtpAllowInvalidCertificate = false;
   }
 
   /// <summary>
@@ -122,4 +123,9 @@ public class PluginConfiguration : BasePluginConfiguration
   /// Gets or sets the recipient address for notification emails (typically the admin/ops mailbox).
   /// </summary>
   public string NotificationEmailTo { get; set; }
+
+  /// <summary>
+  /// Gets or sets a value indicating whether to accept self-signed/invalid SMTP TLS certificates (insecure).
+  /// </summary>
+  public bool SmtpAllowInvalidCertificate { get; set; }
 }

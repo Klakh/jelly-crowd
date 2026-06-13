@@ -151,6 +151,14 @@
               <div class="fieldDescription">Email address that receives request notifications (e.g. the admin/ops mailbox).</div>
             </div>
 
+            <div class="checkboxContainer checkboxContainer-withDescription">
+              <label class="emby-checkbox-label">
+                <input id="SmtpAllowInvalidCertificate" type="checkbox" is="emby-checkbox" />
+                <span>Accept invalid / self-signed SMTP certificate (insecure)</span>
+              </label>
+              <div class="fieldDescription">Enable only for a trusted self-hosted server whose certificate is self-signed or expired.</div>
+            </div>
+
             <div class="fieldDescription">Send a test notification (save your settings first).</div>
             <div class="jcTestRow">
               <button is="emby-button" type="button" id="jcTestDiscord" class="raised emby-button"><span>Test Discord</span></button>
@@ -317,6 +325,7 @@
             document.querySelector('#SmtpPassword').value = config.SmtpPassword || '';
             document.querySelector('#SmtpFromAddress').value = config.SmtpFromAddress || '';
             document.querySelector('#NotificationEmailTo').value = config.NotificationEmailTo || '';
+            document.querySelector('#SmtpAllowInvalidCertificate').checked = !!config.SmtpAllowInvalidCertificate;
             buildQuotaOverrides(config);
             Dashboard.hideLoadingMsg();
           });
@@ -343,6 +352,7 @@
             config.SmtpPassword = document.querySelector('#SmtpPassword').value;
             config.SmtpFromAddress = document.querySelector('#SmtpFromAddress').value;
             config.NotificationEmailTo = document.querySelector('#NotificationEmailTo').value;
+            config.SmtpAllowInvalidCertificate = document.querySelector('#SmtpAllowInvalidCertificate').checked;
             config.QuotaOverrides = collectQuotaOverrides();
             ApiClient.updatePluginConfiguration(JellyCrowdConfig.pluginUniqueId, config).then(function (result) {
               Dashboard.processPluginConfigurationUpdateResult(result);

@@ -1,15 +1,16 @@
 using System;
-using System.Net;
 using System.Net.Http;
-using System.Net.Mail;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.JellyCrowd.Configuration;
 using Jellyfin.Plugin.JellyCrowd.Models;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using MediaBrowser.Common.Net;
 using Microsoft.Extensions.Logging;
+using MimeKit;
 
 namespace Jellyfin.Plugin.JellyCrowd.Services;
 
@@ -132,20 +133,31 @@ public sealed class NotificationService : INotificationService
     response.EnsureSuccessStatusCode();
   }
 
-  private async Task SendEmailCoreAsync(PluginConfiguration config, string subject, string body, CancellationToken cancellationToken)
+  private static async Task SendEmailCoreAsync(PluginConfiguration config, string subject, string body, CancellationToken cancellationToken)
   {
-    using var message = new MailMessage(config.SmtpFromAddress, config.NotificationEmailTo, subject, body);
-    using var smtp = new SmtpClient(config.SmtpHost, config.SmtpPort)
+    using var message = new MimeMessage();
+    message.From.Add(MailboxAddress.Parse(config.SmtpFromAddress));
+    message.To.Add(MailboxAddress.Parse(config.NotificationEmailTo));
+    message.Subject = subject;
+    message.Body = new TextPart("plain") { Text = body };
+
+    using var client = new SmtpClient { Timeout = SmtpTimeoutMs };
+    if (config.SmtpAllowInvalidCertificate)
     {
-      EnableSsl = config.SmtpUseSsl,
-      Timeout = SmtpTimeoutMs
-    };
+#pragma warning disable CA5359 // Admin opted in to accept self-signed/invalid certs for their own SMTP server.
+      client.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true;
+#pragma warning restore CA5359
+    }
+
+    var options = config.SmtpUseSsl ? SecureSocketOptions.Auto : SecureSocketOptions.None;
+    await client.ConnectAsync(config.SmtpHost, config.SmtpPort, options, cancellationToken).ConfigureAwait(false);
 
     if (!string.IsNullOrWhiteSpace(config.SmtpUsername))
     {
-      smtp.Credentials = new NetworkCredential(config.SmtpUsername, config.SmtpPassword);
+      await client.AuthenticateAsync(config.SmtpUsername, config.SmtpPassword, cancellationToken).ConfigureAwait(false);
     }
 
-    await smtp.SendMailAsync(message, cancellationToken).ConfigureAwait(false);
+    await client.SendAsync(message, cancellationToken).ConfigureAwait(false);
+    await client.DisconnectAsync(true, cancellationToken).ConfigureAwait(false);
   }
 }
