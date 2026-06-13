@@ -3,31 +3,32 @@
 <head>
   <meta charset="utf-8">
   <title>Jelly Crowd</title>
-  <style>
-    .jcTabBar { display: flex; gap: 0.5em; margin: 1em 0 1.5em; flex-wrap: wrap; }
-    .jcTab { padding: 0.5em 1em; border: none; border-radius: 0.3em; cursor: pointer;
-             background: rgba(127, 127, 127, 0.15); color: inherit; }
-    .jcTab.jcTabActive { background: #00a4dc; color: #fff; }
-    .jcTable { width: 100%; border-collapse: collapse; }
-    .jcTable th, .jcTable td { text-align: left; padding: 0.55em 0.8em; border-bottom: 1px solid rgba(127, 127, 127, 0.2); vertical-align: middle; }
-    .jcTable th { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.6; font-weight: 600; }
-    .jcTable td.jcColActions { text-align: right; white-space: nowrap; }
-    .jcAdminPoster { width: 2.4em; height: 3.6em; object-fit: cover; border-radius: 0.25em; background: rgba(127, 127, 127, 0.2); display: block; }
-    .jcAdminSub { opacity: 0.65; font-size: 0.85em; }
-    .jcStatus { font-size: 0.8em; padding: 0.2em 0.7em; border-radius: 1em; background: rgba(127, 127, 127, 0.3); white-space: nowrap; }
-    .jcStatus-pending { background: #b58900; color: #fff; }
-    .jcStatus-approved { background: #268bd2; color: #fff; }
-    .jcStatus-available { background: #2e7d32; color: #fff; }
-    .jcStatus-denied { background: #c0392b; color: #fff; }
-    .jcAvatar { width: 2em; height: 2em; border-radius: 50%; object-fit: cover; background: rgba(127, 127, 127, 0.3); display: block; }
-    .jcTable input[type="number"] { width: 7em; }
-    .jcTestRow { display: flex; align-items: center; gap: 0.8em; margin-top: 0.5em; flex-wrap: wrap; }
-    .jcTestResult { font-size: 0.85em; }
-  </style>
 </head>
 <body>
   <div id="JellyCrowdConfigPage" data-role="page" class="page type-interior pluginConfigurationPage"
        data-require="emby-input,emby-button,emby-select,emby-checkbox">
+    <style>
+      /* Inlined inside the page div: Jellyfin injects only this element, not <head>. */
+      .jcTabBar { display: flex; gap: 0.5em; margin: 1em 0 1.5em; flex-wrap: wrap; }
+      .jcTab { padding: 0.5em 1em; border: none; border-radius: 0.3em; cursor: pointer;
+               background: rgba(127, 127, 127, 0.15); color: inherit; }
+      .jcTab.jcTabActive { background: #00a4dc; color: #fff; }
+      .jcTable { width: 100%; border-collapse: collapse; }
+      .jcTable th, .jcTable td { text-align: left; padding: 0.55em 0.8em; border-bottom: 1px solid rgba(127, 127, 127, 0.2); vertical-align: middle; }
+      .jcTable th { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.6; font-weight: 600; }
+      .jcTable td.jcColActions { text-align: right; white-space: nowrap; }
+      .jcAdminPoster { width: 2.4em; height: 3.6em; object-fit: cover; border-radius: 0.25em; background: rgba(127, 127, 127, 0.2); display: block; }
+      .jcAdminSub { opacity: 0.65; font-size: 0.85em; }
+      .jcStatus { font-size: 0.8em; padding: 0.2em 0.7em; border-radius: 1em; background: rgba(127, 127, 127, 0.3); white-space: nowrap; }
+      .jcStatus-pending { background: #b58900; color: #fff; }
+      .jcStatus-approved { background: #268bd2; color: #fff; }
+      .jcStatus-available { background: #2e7d32; color: #fff; }
+      .jcStatus-denied { background: #c0392b; color: #fff; }
+      .jcAvatar { width: 2em; height: 2em; border-radius: 50%; object-fit: cover; background: rgba(127, 127, 127, 0.3); display: block; }
+      .jcTable input[type="number"] { width: 7em; }
+      .jcTestRow { display: flex; align-items: center; gap: 0.8em; margin-top: 0.5em; flex-wrap: wrap; }
+      .jcTestResult { font-size: 0.85em; }
+    </style>
     <div data-role="content">
       <div class="content-primary">
         <h2 class="sectionTitle">Jelly Crowd</h2>
