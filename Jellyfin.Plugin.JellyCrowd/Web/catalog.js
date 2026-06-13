@@ -190,7 +190,7 @@
     return card;
   }
 
-  function requestItem(item, button, season) {
+  function requestItem(item, button, season, dateInput) {
     button.disabled = true;
     button.textContent = t('requesting');
     apiPost('JellyCrowd/Requests', {
@@ -199,7 +199,8 @@
       Title: item.Title,
       PosterPath: item.PosterPath,
       ReleaseDate: item.ReleaseDate,
-      Season: (typeof season === 'number') ? season : null
+      Season: (typeof season === 'number') ? season : null,
+      DesiredAt: (dateInput && dateInput.value) ? dateInput.value : null
     }).then(function () {
       button.textContent = t('requested');
     }).catch(function (error) {
@@ -214,6 +215,22 @@
     });
   }
 
+  // Optional "desired date" picker (defaults to today): when the user wants the request fulfilled.
+  // Reserved for future Servarr/custom download-script scheduling.
+  function buildDesiredDateRow() {
+    var wrap = document.createElement('div');
+    wrap.className = 'jellycrowd-desired-date';
+    var label = document.createElement('label');
+    label.textContent = t('desired_date_label');
+    var input = document.createElement('input');
+    input.type = 'date';
+    input.value = lib.isoDate(new Date());
+    input.min = lib.isoDate(new Date());
+    label.appendChild(input);
+    wrap.appendChild(label);
+    return { row: wrap, input: input };
+  }
+
   // ---------- modal ----------
 
   function externalLink(href, text) {
@@ -225,7 +242,7 @@
     return a;
   }
 
-  function renderSeasonRequests(container, item, seasons) {
+  function renderSeasonRequests(container, item, seasons, dateInput) {
     container.innerHTML = '';
     (seasons || []).forEach(function (season) {
       var row = document.createElement('div');
@@ -242,7 +259,7 @@
         btn.className = 'jellycrowd-request';
         btn.type = 'button';
         btn.textContent = t('request_button');
-        btn.addEventListener('click', function () { requestItem(item, btn, season.SeasonNumber); });
+        btn.addEventListener('click', function () { requestItem(item, btn, season.SeasonNumber, dateInput); });
         row.appendChild(btn);
       }
 
@@ -316,12 +333,19 @@
     content.appendChild(links);
 
     if (!item.Available) {
+      var dateInput = null;
+      if (!quotaExceeded) {
+        var dateRow = buildDesiredDateRow();
+        dateInput = dateRow.input;
+        content.appendChild(dateRow.row);
+      }
+
       if (item.MediaType === 'tv') {
         var seasonsEl = document.createElement('div');
         seasonsEl.className = 'jellycrowd-seasons';
         content.appendChild(seasonsEl);
         apiGet('JellyCrowd/Catalog/Seasons/' + item.TmdbId + '?language=' + encodeURIComponent(fullLocale()))
-          .then(function (seasons) { renderSeasonRequests(seasonsEl, item, seasons); })
+          .then(function (seasons) { renderSeasonRequests(seasonsEl, item, seasons, dateInput); })
           .catch(function () { /* seasons are best-effort */ });
       } else if (quotaExceeded) {
         content.appendChild(blockedRequestButton());
@@ -330,7 +354,7 @@
         requestButton.className = 'jellycrowd-request';
         requestButton.type = 'button';
         requestButton.textContent = t('request_button');
-        requestButton.addEventListener('click', function () { requestItem(item, requestButton); });
+        requestButton.addEventListener('click', function () { requestItem(item, requestButton, null, dateInput); });
         content.appendChild(requestButton);
       }
     }

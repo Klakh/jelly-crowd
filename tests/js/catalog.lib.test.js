@@ -47,6 +47,11 @@ test('contentLocale keeps the user locale in auto mode', () => {
   assert.strictEqual(lib.contentLocale('auto', ''), 'en-US');
 });
 
+test('isoDate formats a Date as zero-padded YYYY-MM-DD (local)', () => {
+  assert.strictEqual(lib.isoDate(new Date(2026, 0, 5)), '2026-01-05');
+  assert.strictEqual(lib.isoDate(new Date(2026, 11, 31)), '2026-12-31');
+});
+
 test('yearOf extracts the year or returns empty', () => {
   assert.strictEqual(lib.yearOf({ ReleaseDate: '2021-02-02' }), '2021');
   assert.strictEqual(lib.yearOf({}), '');

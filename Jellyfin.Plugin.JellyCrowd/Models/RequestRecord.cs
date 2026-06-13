@@ -58,6 +58,12 @@ public class RequestRecord
   public DateTime RequestedAt { get; set; }
 
   /// <summary>
+  /// Gets or sets the UTC date/time the user wants the request to be fulfilled. Defaults to the
+  /// creation time ("now"). Reserved for future Servarr/custom download-script scheduling.
+  /// </summary>
+  public DateTime? DesiredAt { get; set; }
+
+  /// <summary>
   /// Gets or sets the UTC time an administrator approved or denied the request, if any.
   /// </summary>
   public DateTime? DecidedAt { get; set; }

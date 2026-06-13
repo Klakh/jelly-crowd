@@ -38,6 +38,16 @@
     return userLocale || 'en-US';
   }
 
+  // Format a Date (or date-parseable value) as a local 'YYYY-MM-DD' string for <input type="date">.
+  function isoDate(value) {
+    var d = (value instanceof Date) ? value : new Date(value);
+    var month = String(d.getMonth() + 1);
+    var day = String(d.getDate());
+    return d.getFullYear()
+      + '-' + (month.length < 2 ? '0' + month : month)
+      + '-' + (day.length < 2 ? '0' + day : day);
+  }
+
   // Extract the 4-digit year from a TMDB date string, or '' when absent.
   function yearOf(item) {
     return item && item.ReleaseDate ? String(item.ReleaseDate).slice(0, 4) : '';
@@ -121,6 +131,7 @@
     pickLang: pickLang,
     resolveLang: resolveLang,
     contentLocale: contentLocale,
+    isoDate: isoDate,
     yearOf: yearOf,
     formatTitle: formatTitle,
     formatRating: formatRating,

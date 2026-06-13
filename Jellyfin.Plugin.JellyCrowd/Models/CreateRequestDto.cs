@@ -1,3 +1,5 @@
+using System;
+
 namespace Jellyfin.Plugin.JellyCrowd.Models;
 
 /// <summary>
@@ -34,4 +36,10 @@ public class CreateRequestDto
   /// Gets or sets the requested season number for shows (null = movie or whole show).
   /// </summary>
   public int? Season { get; set; }
+
+  /// <summary>
+  /// Gets or sets the date/time the user wants the request fulfilled. Null defaults to "now".
+  /// Reserved for future Servarr/custom download-script scheduling.
+  /// </summary>
+  public DateTime? DesiredAt { get; set; }
 }

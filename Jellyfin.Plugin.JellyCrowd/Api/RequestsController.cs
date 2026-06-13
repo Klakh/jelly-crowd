@@ -107,6 +107,7 @@ public class RequestsController : ControllerBase
         PosterPath = dto.PosterPath,
         ReleaseDate = dto.ReleaseDate,
         Season = dto.Season,
+        DesiredAt = dto.DesiredAt ?? DateTime.UtcNow,
         Status = requireApproval ? RequestStatus.Pending : RequestStatus.Approved
       },
       cancellationToken).ConfigureAwait(false);

@@ -46,6 +46,33 @@ public class RequestsControllerTests
   }
 
   [Fact]
+  public async Task Create_StoresProvidedDesiredDate()
+  {
+    var controller = CreateController(new FakeRequestStore());
+    var desired = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc);
+
+    var result = await controller.Create(
+      new CreateRequestDto { TmdbId = 1, MediaType = "movie", Title = "Dune", DesiredAt = desired },
+      CancellationToken.None);
+
+    var record = Assert.IsType<RequestRecord>(Assert.IsType<OkObjectResult>(result.Result).Value);
+    Assert.Equal(desired, record.DesiredAt);
+  }
+
+  [Fact]
+  public async Task Create_DefaultsDesiredDateToNow_WhenOmitted()
+  {
+    var controller = CreateController(new FakeRequestStore());
+    var before = DateTime.UtcNow;
+
+    var result = await controller.Create(ValidDto(), CancellationToken.None);
+
+    var record = Assert.IsType<RequestRecord>(Assert.IsType<OkObjectResult>(result.Result).Value);
+    Assert.NotNull(record.DesiredAt);
+    Assert.InRange(record.DesiredAt!.Value, before.AddSeconds(-5), DateTime.UtcNow.AddSeconds(5));
+  }
+
+  [Fact]
   public async Task Create_InvalidMediaType_ReturnsBadRequest()
   {
     var controller = CreateController(new FakeRequestStore());
