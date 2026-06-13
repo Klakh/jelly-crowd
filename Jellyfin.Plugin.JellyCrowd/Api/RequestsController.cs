@@ -195,6 +195,25 @@ public class RequestsController : ControllerBase
     return updated is null ? NotFound() : Ok(updated);
   }
 
+  /// <summary>
+  /// Cancels one of the current user's own requests, only while it is still pending.
+  /// </summary>
+  /// <param name="id">The request identifier.</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <response code="204">The request was cancelled.</response>
+  /// <response code="404">No matching pending request owned by the user.</response>
+  /// <returns>No content on success; 404 otherwise.</returns>
+  [HttpPost("{id}/Cancel")]
+  [Authorize]
+  [ProducesResponseType(StatusCodes.Status204NoContent)]
+  [ProducesResponseType(StatusCodes.Status404NotFound)]
+  public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken)
+  {
+    var userId = await _userAccessor.GetUserIdAsync(Request).ConfigureAwait(false);
+    var cancelled = await _store.CancelAsync(id, userId, cancellationToken).ConfigureAwait(false);
+    return cancelled ? NoContent() : NotFound();
+  }
+
   private static bool IsValidMediaType(string mediaType)
     => string.Equals(mediaType, "movie", StringComparison.Ordinal)
        || string.Equals(mediaType, "tv", StringComparison.Ordinal);

@@ -25,6 +25,7 @@
   "view_tmdb": "TMDB",
   "view_imdb": "IMDb",
   "request_button": "Demander",
+  "cancel": "Annuler",
   "requesting": "Demande en cours…",
   "requested": "Demandé",
   "already_requested": "Déjà demandé",

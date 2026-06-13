@@ -123,6 +123,29 @@ public class RequestsControllerTests
   }
 
   [Fact]
+  public async Task Cancel_OwnPending_ReturnsNoContent()
+  {
+    var store = new FakeRequestStore();
+    var created = (RequestRecord)((OkObjectResult)(await CreateController(store).Create(ValidDto(), CancellationToken.None)).Result!).Value!;
+
+    var result = await CreateController(store).Cancel(created.Id, CancellationToken.None);
+
+    Assert.IsType<NoContentResult>(result);
+  }
+
+  [Fact]
+  public async Task Cancel_Approved_ReturnsNotFound()
+  {
+    var store = new FakeRequestStore();
+    var created = (RequestRecord)((OkObjectResult)(await CreateController(store).Create(ValidDto(), CancellationToken.None)).Result!).Value!;
+    await store.UpdateStatusAsync(created.Id, RequestStatus.Approved, Guid.NewGuid(), CancellationToken.None);
+
+    var result = await CreateController(store).Cancel(created.Id, CancellationToken.None);
+
+    Assert.IsType<NotFoundResult>(result);
+  }
+
+  [Fact]
   public async Task RequestDeletion_OwnAvailable_ReturnsOk()
   {
     var store = new FakeRequestStore();
@@ -232,6 +255,18 @@ public class RequestsControllerTests
       }
 
       return Task.FromResult(record);
+    }
+
+    public Task<bool> CancelAsync(Guid id, Guid userId, CancellationToken cancellationToken)
+    {
+      var record = _items.FirstOrDefault(r => r.Id == id);
+      if (record is null || record.UserId != userId || record.Status != RequestStatus.Pending)
+      {
+        return Task.FromResult(false);
+      }
+
+      _items.Remove(record);
+      return Task.FromResult(true);
     }
 
     public Task<RequestRecord?> RequestDeletionAsync(Guid id, Guid userId, CancellationToken cancellationToken)

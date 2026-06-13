@@ -40,6 +40,18 @@
     });
   }
 
+  function apiPost(path) {
+    if (window.ApiClient && typeof window.ApiClient.ajax === 'function') {
+      return window.ApiClient.ajax({ type: 'POST', url: pluginUrl(path) });
+    }
+    return fetch(pluginUrl(path), { method: 'POST' }).then(function (r) {
+      if (!r.ok) {
+        throw new Error('HTTP ' + r.status);
+      }
+      return r;
+    });
+  }
+
   function loadStrings() {
     return fetch(pluginUrl('JellyCrowd/Web/strings/' + shortLang() + '.json'))
       .then(function (r) { return r.ok ? r.json() : {}; })
@@ -89,6 +101,21 @@
       status.textContent = t(key);
     }
     row.appendChild(status);
+
+    var isPending = (request.Status === 0 || request.Status === 'Pending');
+    if (isPending && !request.DeletionRequestedAt) {
+      var cancel = document.createElement('button');
+      cancel.type = 'button';
+      cancel.className = 'jellycrowd-request';
+      cancel.textContent = t('cancel');
+      cancel.addEventListener('click', function () {
+        cancel.disabled = true;
+        apiPost('JellyCrowd/Requests/' + request.Id + '/Cancel')
+          .then(function () { row.remove(); })
+          .catch(function () { cancel.disabled = false; });
+      });
+      row.appendChild(cancel);
+    }
 
     return row;
   }

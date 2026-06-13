@@ -82,6 +82,15 @@ public interface IRequestStore
   Task<RequestRecord?> MarkAvailableAsync(Guid id, string jellyfinItemId, CancellationToken cancellationToken);
 
   /// <summary>
+  /// Cancels (removes) one of the user's own requests, only while it is still pending.
+  /// </summary>
+  /// <param name="id">The request identifier.</param>
+  /// <param name="userId">The owner (must match).</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <returns><c>true</c> when the request was cancelled; <c>false</c> if not found, not owned, or not pending.</returns>
+  Task<bool> CancelAsync(Guid id, Guid userId, CancellationToken cancellationToken);
+
+  /// <summary>
   /// Flags one of the user's available requests for deletion (sets the deletion timestamp).
   /// </summary>
   /// <param name="id">The request identifier.</param>
