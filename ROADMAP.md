@@ -7,24 +7,25 @@ Légende : ☐ à faire · ☑ fait · ◐ en cours
 
 ---
 
-## 📍 État actuel (point de reprise) — au 2026-06-12
+## 📍 État actuel (point de reprise) — au 2026-06-13
 
-- **Version publiée** : releases auto sur GitHub `Klakh/jelly-crowd` (dernière `v0.5.x`). Branche `main`, CI **verte**.
-- **Fait (code, M0→M5)** : catalogue TMDB enrichi (filtres double-sliders genres/années/notes, tri, survol, fiche complète avec affiche + liens TMDB/IMDb, clic dispo → fiche Jellyfin) ; requêtes en file admin **par saison** ; quotas disque par user (overrides, barre d'usage, refus 403/bouton grisé) ; **limite de requêtes par période** ; disponibilité **temps réel** (`IRequestReconciler` sur `ItemAdded` + tâche 15 min) ; **« Mes médias » + suppression disque** après rétention (tâche) ; **notifications Discord/e-mail** ; **logo** ; pages user (Plugin Pages) + **liens/quota dans le bandeau** (File Transformation) + **page admin à onglets** (Demandes/Quotas/Réglages/Notifs) ; **manifest de dépôt** (MAJ auto).
-- **En cours / prochaine action** : **M6 — Catalogue avancé** (scroll infini + rangées de catégories : Top 10 plateformes, Best Sci-Fi…).
-- **Bloqué côté agent (à faire par l'utilisateur)** : vérifs live — suppression (destructif, tester avec rétention courte), header (sélecteur DOM à ajuster si besoin), séries par saison.
+- **Version publiée** : releases auto sur GitHub `Klakh/jelly-crowd` (dernière `v0.5.28`). Branche `main`, CI **verte**.
+- **Fait (code, M0→M6)** : catalogue TMDB enrichi (filtres double-sliders genres/années/notes, tri, survol, fiche complète avec affiche + liens TMDB/IMDb, clic dispo → fiche Jellyfin, **scroll infini + rangées de catégories/plateformes**) ; requêtes en file admin **par saison**, **annulables tant que Pending**, avec **date souhaitée** optionnelle (`DesiredAt`, socle pour l'auto-download) ; quotas disque par user (overrides, barre d'usage, refus 403/bouton grisé) ; **limite de requêtes par période** ; disponibilité **temps réel** (`IRequestReconciler` sur `ItemAdded`/`ItemRemoved` + tâche planifiée de secours) ; **« Mes médias » + suppression disque** après rétention, **multi-user aware** (tâche) ; **notifications Discord (embeds) + e-mail SMTP (MailKit, 465/587)** avec boutons de test ; **réglage de langue admin** (auto/en/fr) ; **logo** ; **page admin à onglets** (Demandes/Quotas/Réglages/Notifs) ; **manifest de dépôt** (MAJ auto).
+- **UI auto-hébergée** : Jelly Crowd injecte son shell (`header.js`) via **File Transformation** (seule dépendance plugin) et **héberge ses propres pages** dans un overlay à onglets — **Plugin Pages retiré**.
+- **En cours / prochaine action** : **M7 — Téléchargement automatique des requêtes** (intégration Servarr / scripts custom).
+- **Bloqué côté agent (à faire par l'utilisateur)** : vérifs live — shell/onglets + thème, suppression (destructif, rétention courte), notifications (Discord/e-mail), séries par saison.
 
 ### Ce qui tourne déjà (vérifié en CI)
 - Pipeline complet : **CI** (`build.yml` : restore → build Release → `dotnet test` → tests JS `node --test` → package `.zip`) + **Release** (`release.yml` : versionning auto par mot-clé de commit `[major]`/`[minor]`/patch → tag + GitHub Release).
 - Backend TMDB : `TmdbClient`/`ITmdbClient`, `TmdbResponseParser`, `CatalogController` (`/JellyCrowd/Catalog/Trending|Search|Details`), DI via `PluginServiceRegistrator`.
 - Frontend : `Web/catalog.html|js|css` + `Web/strings/{en,fr}.json`, servis par `WebController` (`/JellyCrowd/Web/...`), logique pure testée dans `Web/catalog.lib.js` (+ `tests/js/`).
-- Enregistrement Plugin Pages : `PluginPageRegistrationService` (réflexion, sans dépendance NuGet).
+- Injection web : `WebInjectionService` (réflexion) enregistre le callback File Transformation sur `index.html` ; `header.js` héberge le shell + les pages (overlay à onglets).
 
 ### Faits à se rappeler en reprenant (IMPORTANT)
 - **Pas de SDK .NET sur la machine de dev** → on ne build/teste PAS en local. On valide en **poussant sur GitHub et en lisant Actions** (gh CLI absent → API REST ; le token est dans l'URL du remote, ne pas l'afficher).
 - **Toujours `git pull --ff-only` après un push** : la Release pousse un commit `chore(release): vX.Y.Z [skip ci]`.
 - **Analyseurs très stricts** (`TreatWarningsAsErrors`, `AllEnabledByDefault`, StyleCop, Nullable) → écrire défensivement du premier coup (chaque itération = un aller-retour CI).
-- **Plugin Pages** : on l'intègre **par réflexion** (le NuGet `Jellyfin.Plugin.PluginPages` embarque un générateur `Referenceable` qui ne compile pas sous nos réglages stricts). Reproduire ce choix pour tout autre plugin d'IAmParadox27.
+- **Dépendances plugin** : **File Transformation uniquement** (intégré **par réflexion**, sans NuGet). **Plugin Pages a été retiré** (on héberge nos pages nous-mêmes). **Ne PAS internaliser File Transformation** : il patche `Startup.Configure` de Jellyfin via HarmonyLib avec du code spécifique par version → fragile + risque de conflit. Garder son API stable `RegisterTransformation`.
 - ⚠️ Un **token GitHub** (`ghp_…`) est exposé dans la config git du remote — à révoquer si besoin.
 - Règles projet (anglais, indentation 2, i18n suit la langue Jellyfin, tests obligatoires par fonctionnalité) : voir `CLAUDE.md`.
 - M1 n'a pas eu son bump `[minor]` (le commit `[minor]` avait échoué au build, le correctif est passé en patch). Pour marquer M1 → faire un commit `[minor]` (donnerait `v0.2.0`).
@@ -52,10 +53,10 @@ Objectif : parcourir et chercher le catalogue TMDB depuis une page user.
 - ☑ Assets page user `catalog` (HTML/JS/CSS) + i18n en/fr, servis par `WebController` (testé).
 - ☑ **Enregistrement Plugin Pages** (`PluginPageRegistrationService` par réflexion, tolérant à l'absence) + logique JS pure testée (`node:test`).
 - ☐ **Vérif (instance live — à faire par l'utilisateur)** :
-  1. Installer **Plugin Pages** + **File Transformation** (dépôt `https://www.iamparadox.dev/jellyfin/plugins/manifest.json`).
+  1. Installer **File Transformation** (dépôt `https://www.iamparadox.dev/jellyfin/plugins/manifest.json`). *(Plugin Pages n'est plus requis.)*
   2. Installer Jelly Crowd (`.zip` de la release v0.1.4), renseigner la **clé TMDB** dans la config du plugin.
   3. Vérifier que la page « Jelly Crowd » apparaît et liste films/séries (browse + recherche).
-  4. Si la page n'apparaît pas : lire le log `PluginPageRegistrationService` et **ajuster `PageUrl`** dans `Services/PluginPageRegistrationService.cs`.
+  4. Si les onglets/pages n'apparaissent pas : vérifier que **File Transformation** est installé, lire le log `WebInjectionService`, et ajuster les sélecteurs DOM dans `Web/header.js` si besoin.
 
 ## M2 — Requêtes (file d'attente admin)  ◐ (code fait, reste la vérif live)
 
@@ -97,17 +98,37 @@ Objectif : limiter l'occupation disque par user et bloquer au-delà.
 - ☑ **Limite de requêtes par période**, **séries par saison**, **« Mes médias » + suppression disque** (rétention), **réconciliation temps réel** (ItemAdded), **liens/quota dans le bandeau** (File Transformation).
 - ☐ **Vérif (instance live)** : install via dépôt, suppression (rétention courte), header, saisons.
 
-## M6 — Catalogue avancé  ☐ ← PROCHAINE ÉTAPE
+## M6 — Catalogue avancé  ☑
 
 Objectif : un catalogue « Netflix-like » plus riche.
 
-- ☐ **Scroll infini** : pagination TMDB (`page`) côté `Discover`/`Trending` + chargement au scroll (IntersectionObserver) côté catalogue.
-- ☐ **Rangées de catégories** intercalées : carrousels « Top 10 Netflix / Prime… » (TMDB `with_watch_providers` + `watch_region`), « Best Sci-Fi », etc. ; clic sur une plateforme → filtre par plateforme.
-- ☐ Endpoints/contrats : `with_watch_providers`, `watch_region`, listes de providers ; UI en rangées horizontales.
+- ☑ **Scroll infini** : pagination TMDB (`page`) côté `Discover`/`Trending` + chargement au scroll (IntersectionObserver) côté catalogue.
+- ☑ **Rangées de catégories** intercalées : carrousels « Top plateformes », « Best Sci-Fi », etc. (TMDB `with_watch_providers` + `watch_region`) ; clic sur une plateforme → filtre par plateforme.
+- ☑ Endpoints/contrats : `with_watch_providers`, `watch_region`, `GET /JellyCrowd/Catalog/Providers` ; UI en grille continue + rangées.
+- ☐ **Vérif (instance live)** : scroll infini fluide, rangées peuplées, filtre par plateforme.
+
+## M7 — Téléchargement automatique des requêtes (Servarr / scripts custom)  ☐ ← PROCHAINE ÉTAPE
+
+Objectif : déclencher **automatiquement le téléchargement** d'une requête une fois **approuvée** (et à partir de sa **date souhaitée** `DesiredAt`), via un backend configurable — **Radarr/Sonarr** ou un **script/webhook custom** — puis laisser la réconciliation existante basculer la requête en `Available` quand le média arrive en biblio.
+
+Socle déjà en place : champ **`DesiredAt`** sur les requêtes (date souhaitée, défaut « maintenant »), réconciliation temps réel sur `ItemAdded`, notifications.
+
+- ☐ **Abstraction** `IDownloadClient` (+ `Models/DownloadTarget`) avec un orchestrateur qui prend une requête approuvée et la dispatche au backend configuré. `NoopDownloadClient` par défaut (comportement actuel : file admin manuelle).
+- ☐ **Config admin** (nouvel onglet « Téléchargement ») : sélecteur de backend (Aucun / Servarr / Script / Webhook) + réglages :
+  - Servarr : URL + clé API **Radarr** (films) et **Sonarr** (séries), **dossier racine** + **profil de qualité** (listés via leur API), option *monitor/search now*.
+  - Script : chemin d'un exécutable + gabarit d'arguments ; la requête est passée en **JSON sur stdin** et/ou variables d'environnement.
+  - Webhook : URL POST + en-têtes optionnels ; corps = la requête (JSON).
+- ☐ **Implémentations** : `RadarrSonarrDownloadClient` (lookup par `tmdbId` film ; série par `tmdbId`/`tvdbId`, **par saison** via `DesiredAt`/`Season`), `CustomScriptDownloadClient`, `WebhookDownloadClient`. Builders de payload **purs et testés**.
+- ☐ **Déclenchement** : à l'approbation **si** `DesiredAt <= now`, sinon une **tâche planifiée** (`DownloadDispatchTask`) ramasse les requêtes `Approved` dont `DesiredAt` est échu et non encore dispatchées. Suivi via un champ `DispatchedAt` (idempotent, pas de double envoi).
+- ☐ **États & notifs** : nouvel événement de notification « en téléchargement » (dispatch) ; la bascule `Available` reste pilotée par la réconciliation quand Servarr/le script a importé le fichier.
+- ☐ **Erreurs** : backend injoignable / lookup introuvable / script en échec → log + statut requête inchangé (reste `Approved`, re-tentée au prochain passage de la tâche) ; surfaçage dans la file admin.
+- ☐ **Tests** : builders de payload (Radarr/Sonarr/JSON script/webhook), mapping TMDB→cible, logique d'éligibilité (`DesiredAt`/`DispatchedAt`), contrôleur/tâche avec fakes. Côté JS : réglages d'onglet si UI testable.
+- ☐ **Vérif (instance live)** : configurer Radarr/Sonarr (ou un script), approuver une requête (date du jour) → l'item est ajouté côté Servarr/script ; à l'import en biblio, la requête passe `Available`. Tester aussi une **date future** (dispatch différé par la tâche).
 
 ---
 
-## Hors périmètre v1 (idées futures)
+## Hors périmètre / idées futures
 
-- Intégration **Radarr/Sonarr** pour satisfaire les requêtes automatiquement.
+- Mapping d'identifiants avancé TMDB↔TVDB côté Sonarr si les lookups natifs ne suffisent pas.
 - Recommandations personnalisées, watchlists.
+- Intégration d'autres downloaders (qBittorrent direct, etc.) via le même `IDownloadClient`.
