@@ -119,6 +119,7 @@
             <div class="inputContainer">
               <label class="inputLabel inputLabelUnfocused" for="SmtpPort">SMTP port</label>
               <input id="SmtpPort" type="number" is="emby-input" min="1" step="1" />
+              <div class="fieldDescription">Use 587 with SSL enabled (STARTTLS). Port 465 (implicit SSL) is not supported.</div>
             </div>
 
             <div class="checkboxContainer checkboxContainer-withDescription">
@@ -253,9 +254,22 @@
       function jcRunNotifTest(channel) {
         var result = document.querySelector('#jcTestResult');
         result.textContent = '…';
-        ApiClient.ajax({ type: 'POST', url: ApiClient.getUrl('JellyCrowd/Notifications/Test/' + channel) })
-          .then(function () { result.textContent = '✅ ' + channel + ' OK'; })
-          .catch(function () { result.textContent = '❌ ' + channel + ' — check settings / server logs'; });
+        fetch(ApiClient.getUrl('JellyCrowd/Notifications/Test/' + channel), {
+          method: 'POST',
+          headers: { 'Authorization': 'MediaBrowser Token="' + ApiClient.accessToken() + '"' }
+        }).then(function (r) {
+          if (r.ok) {
+            result.textContent = '✅ ' + channel + ' OK';
+            return null;
+          }
+          return r.text().then(function (body) {
+            var msg = body;
+            try { msg = JSON.parse(body).detail || body; } catch (e) { /* not JSON */ }
+            result.textContent = '❌ ' + (msg || ('HTTP ' + r.status));
+          });
+        }).catch(function (e) {
+          result.textContent = '❌ ' + (e && e.message ? e.message : 'request failed');
+        });
       }
 
       function collectQuotaOverrides() {
