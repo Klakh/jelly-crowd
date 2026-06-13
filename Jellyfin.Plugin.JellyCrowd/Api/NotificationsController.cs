@@ -51,7 +51,14 @@ public class NotificationsController : ControllerBase
     catch (Exception ex)
 #pragma warning restore CA1031
     {
-      return Problem(detail: ex.Message, statusCode: StatusCodes.Status400BadRequest);
+      // SMTP failures wrap the real cause (cert/auth/connection) in inner exceptions — include them.
+      var detail = ex.Message;
+      for (var inner = ex.InnerException; inner is not null; inner = inner.InnerException)
+      {
+        detail += " → " + inner.Message;
+      }
+
+      return Problem(detail: detail, statusCode: StatusCodes.Status400BadRequest);
     }
   }
 }
