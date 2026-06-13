@@ -37,18 +37,20 @@ public sealed class LibraryEventEntryPoint : IHostedService
   /// <inheritdoc />
   public Task StartAsync(CancellationToken cancellationToken)
   {
-    _libraryManager.ItemAdded += OnItemAdded;
+    _libraryManager.ItemAdded += OnLibraryChanged;
+    _libraryManager.ItemRemoved += OnLibraryChanged;
     return Task.CompletedTask;
   }
 
   /// <inheritdoc />
   public Task StopAsync(CancellationToken cancellationToken)
   {
-    _libraryManager.ItemAdded -= OnItemAdded;
+    _libraryManager.ItemAdded -= OnLibraryChanged;
+    _libraryManager.ItemRemoved -= OnLibraryChanged;
     return Task.CompletedTask;
   }
 
-  private void OnItemAdded(object? sender, ItemChangeEventArgs e)
+  private void OnLibraryChanged(object? sender, ItemChangeEventArgs e)
   {
     lock (_gate)
     {

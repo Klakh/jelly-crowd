@@ -327,6 +327,10 @@
   margin-bottom: 1.5em;
 }
 
+.jellycrowd-quota-clickable {
+  cursor: pointer;
+}
+
 .jellycrowd-quota-label {
   margin-bottom: 0.4em;
   font-size: 0.9em;

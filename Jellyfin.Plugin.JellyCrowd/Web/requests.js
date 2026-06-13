@@ -79,10 +79,15 @@
     main.textContent = lib.formatTitle(request) + (request.Season ? ' · S' + request.Season : '');
     row.appendChild(main);
 
-    var key = lib.statusLabelKey(request.Status);
     var status = document.createElement('span');
-    status.className = 'jellycrowd-status jellycrowd-status-' + key.replace('status_', '');
-    status.textContent = t(key);
+    if (request.DeletionRequestedAt) {
+      status.className = 'jellycrowd-status jellycrowd-status-denied';
+      status.textContent = t('deletion_requested');
+    } else {
+      var key = lib.statusLabelKey(request.Status);
+      status.className = 'jellycrowd-status jellycrowd-status-' + key.replace('status_', '');
+      status.textContent = t(key);
+    }
     row.appendChild(status);
 
     return row;
@@ -94,6 +99,13 @@
     if (!info) {
       return;
     }
+
+    // Clicking the quota opens the "My media" page to manage/delete owned titles.
+    el.classList.add('jellycrowd-quota-clickable');
+    el.title = t('my_media_title');
+    el.onclick = function () {
+      window.location.hash = '#/userpluginsettings.html?pageUrl=' + encodeURIComponent('/JellyCrowd/Web/mymedia.html');
+    };
 
     var unlimited = info.Unlimited || info.QuotaBytes <= 0;
     var label = document.createElement('div');

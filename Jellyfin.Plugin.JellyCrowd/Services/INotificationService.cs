@@ -17,4 +17,13 @@ public interface INotificationService
   /// <param name="cancellationToken">The cancellation token.</param>
   /// <returns>A task that completes when delivery has been attempted.</returns>
   Task NotifyRequestEventAsync(RequestRecord request, NotificationEvent notificationEvent, CancellationToken cancellationToken);
+
+  /// <summary>
+  /// Sends a test notification to a single channel (<c>discord</c> or <c>email</c>). Throws on failure
+  /// or when the channel is not configured, so the caller can report the outcome.
+  /// </summary>
+  /// <param name="channel">The channel to test (<c>discord</c> or <c>email</c>).</param>
+  /// <param name="cancellationToken">The cancellation token.</param>
+  /// <returns>A task that completes when the test message has been sent.</returns>
+  Task SendTestAsync(string channel, CancellationToken cancellationToken);
 }

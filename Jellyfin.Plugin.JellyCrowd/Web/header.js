@@ -52,7 +52,11 @@
 
   function buildQuota() {
     var box = document.createElement('span');
-    box.style.cssText = 'display:inline-flex;flex-direction:column;justify-content:center;min-width:8em;margin:0 .6em;font-size:.7em;';
+    box.style.cssText = 'display:inline-flex;flex-direction:column;justify-content:center;min-width:8em;margin:0 .6em;font-size:.7em;cursor:pointer;';
+    box.title = t('my_media_title');
+    box.addEventListener('click', function () {
+      window.location.hash = pageHash('mymedia.html');
+    });
     var label = document.createElement('span');
     var track = document.createElement('span');
     track.style.cssText = 'height:.35em;border-radius:.2em;background:rgba(255,255,255,.2);overflow:hidden;display:block;margin-top:.2em;';

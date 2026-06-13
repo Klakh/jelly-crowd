@@ -50,6 +50,39 @@ public sealed class NotificationService : INotificationService
     await SendEmailAsync(config, subject, body, cancellationToken).ConfigureAwait(false);
   }
 
+  /// <inheritdoc />
+  public async Task SendTestAsync(string channel, CancellationToken cancellationToken)
+  {
+    var config = Plugin.Instance?.Configuration ?? throw new InvalidOperationException("Plugin is not initialized.");
+    const string Subject = "Jelly Crowd test notification";
+    const string Body = "This is a test notification from Jelly Crowd. If you can read this, the channel works.";
+
+    if (string.Equals(channel, "discord", StringComparison.OrdinalIgnoreCase))
+    {
+      if (string.IsNullOrWhiteSpace(config.DiscordWebhookUrl))
+      {
+        throw new InvalidOperationException("The Discord webhook URL is not configured.");
+      }
+
+      await SendDiscordCoreAsync(config, Subject, Body, cancellationToken).ConfigureAwait(false);
+    }
+    else if (string.Equals(channel, "email", StringComparison.OrdinalIgnoreCase))
+    {
+      if (string.IsNullOrWhiteSpace(config.SmtpHost)
+          || string.IsNullOrWhiteSpace(config.SmtpFromAddress)
+          || string.IsNullOrWhiteSpace(config.NotificationEmailTo))
+      {
+        throw new InvalidOperationException("SMTP is not fully configured (host, from address and recipient are required).");
+      }
+
+      await SendEmailCoreAsync(config, Subject, Body, cancellationToken).ConfigureAwait(false);
+    }
+    else
+    {
+      throw new ArgumentException("Unknown notification channel.", nameof(channel));
+    }
+  }
+
   private async Task SendDiscordAsync(PluginConfiguration config, string subject, string body, CancellationToken cancellationToken)
   {
     if (string.IsNullOrWhiteSpace(config.DiscordWebhookUrl))
@@ -59,11 +92,7 @@ public sealed class NotificationService : INotificationService
 
     try
     {
-      var client = _httpClientFactory.CreateClient(NamedClient.Default);
-      var payload = JsonSerializer.Serialize(new { content = "**" + subject + "**\n" + body });
-      using var content = new StringContent(payload, Encoding.UTF8, "application/json");
-      using var response = await client.PostAsync(new Uri(config.DiscordWebhookUrl), content, cancellationToken).ConfigureAwait(false);
-      response.EnsureSuccessStatusCode();
+      await SendDiscordCoreAsync(config, subject, body, cancellationToken).ConfigureAwait(false);
     }
 #pragma warning disable CA1031 // A notification failure must never affect the request flow.
     catch (Exception ex)
@@ -84,19 +113,7 @@ public sealed class NotificationService : INotificationService
 
     try
     {
-      using var message = new MailMessage(config.SmtpFromAddress, config.NotificationEmailTo, subject, body);
-      using var smtp = new SmtpClient(config.SmtpHost, config.SmtpPort)
-      {
-        EnableSsl = config.SmtpUseSsl,
-        Timeout = SmtpTimeoutMs
-      };
-
-      if (!string.IsNullOrWhiteSpace(config.SmtpUsername))
-      {
-        smtp.Credentials = new NetworkCredential(config.SmtpUsername, config.SmtpPassword);
-      }
-
-      await smtp.SendMailAsync(message, cancellationToken).ConfigureAwait(false);
+      await SendEmailCoreAsync(config, subject, body, cancellationToken).ConfigureAwait(false);
     }
 #pragma warning disable CA1031 // A notification failure must never affect the request flow.
     catch (Exception ex)
@@ -104,5 +121,31 @@ public sealed class NotificationService : INotificationService
     {
       _logger.LogWarning(ex, "Failed to send email notification.");
     }
+  }
+
+  private async Task SendDiscordCoreAsync(PluginConfiguration config, string subject, string body, CancellationToken cancellationToken)
+  {
+    var client = _httpClientFactory.CreateClient(NamedClient.Default);
+    var payload = JsonSerializer.Serialize(new { content = "**" + subject + "**\n" + body });
+    using var content = new StringContent(payload, Encoding.UTF8, "application/json");
+    using var response = await client.PostAsync(new Uri(config.DiscordWebhookUrl), content, cancellationToken).ConfigureAwait(false);
+    response.EnsureSuccessStatusCode();
+  }
+
+  private async Task SendEmailCoreAsync(PluginConfiguration config, string subject, string body, CancellationToken cancellationToken)
+  {
+    using var message = new MailMessage(config.SmtpFromAddress, config.NotificationEmailTo, subject, body);
+    using var smtp = new SmtpClient(config.SmtpHost, config.SmtpPort)
+    {
+      EnableSsl = config.SmtpUseSsl,
+      Timeout = SmtpTimeoutMs
+    };
+
+    if (!string.IsNullOrWhiteSpace(config.SmtpUsername))
+    {
+      smtp.Credentials = new NetworkCredential(config.SmtpUsername, config.SmtpPassword);
+    }
+
+    await smtp.SendMailAsync(message, cancellationToken).ConfigureAwait(false);
   }
 }

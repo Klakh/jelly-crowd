@@ -8,20 +8,21 @@
     .jcTab { padding: 0.5em 1em; border: none; border-radius: 0.3em; cursor: pointer;
              background: rgba(127, 127, 127, 0.15); color: inherit; }
     .jcTab.jcTabActive { background: #00a4dc; color: #fff; }
-    .jcAdminRow { display: flex; align-items: center; gap: 1.2em; padding: 0.7em 0.9em; border-radius: 0.5em; background: rgba(127, 127, 127, 0.1); margin-bottom: 0.7em; }
-    .jcAdminMain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2em; }
-    .jcAdminTitleLine { font-weight: 600; }
-    .jcAdminSub { opacity: 0.65; font-size: 0.82em; }
-    .jcAdminPoster { width: 2.8em; height: 4.2em; object-fit: cover; border-radius: 0.3em; flex-shrink: 0; background: rgba(127,127,127,0.2); }
+    .jcTable { width: 100%; border-collapse: collapse; }
+    .jcTable th, .jcTable td { text-align: left; padding: 0.55em 0.8em; border-bottom: 1px solid rgba(127, 127, 127, 0.2); vertical-align: middle; }
+    .jcTable th { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.6; font-weight: 600; }
+    .jcTable td.jcColActions { text-align: right; white-space: nowrap; }
+    .jcAdminPoster { width: 2.4em; height: 3.6em; object-fit: cover; border-radius: 0.25em; background: rgba(127, 127, 127, 0.2); display: block; }
+    .jcAdminSub { opacity: 0.65; font-size: 0.85em; }
     .jcStatus { font-size: 0.8em; padding: 0.2em 0.7em; border-radius: 1em; background: rgba(127, 127, 127, 0.3); white-space: nowrap; }
     .jcStatus-pending { background: #b58900; color: #fff; }
     .jcStatus-approved { background: #268bd2; color: #fff; }
     .jcStatus-available { background: #2e7d32; color: #fff; }
     .jcStatus-denied { background: #c0392b; color: #fff; }
-    .jcQuotaRow { display: flex; align-items: center; gap: 0.8em; padding: 0.5em 0.7em; border-radius: 0.5em; background: rgba(127,127,127,0.1); margin-bottom: 0.5em; }
-    .jcAvatar { width: 2.2em; height: 2.2em; border-radius: 50%; object-fit: cover; background: rgba(127,127,127,0.3); flex-shrink: 0; }
-    .jcQuotaName { flex: 1; min-width: 0; }
-    .jcQuotaRow input { width: 7em; }
+    .jcAvatar { width: 2em; height: 2em; border-radius: 50%; object-fit: cover; background: rgba(127, 127, 127, 0.3); display: block; }
+    .jcTable input[type="number"] { width: 7em; }
+    .jcTestRow { display: flex; align-items: center; gap: 0.8em; margin-top: 0.5em; flex-wrap: wrap; }
+    .jcTestResult { font-size: 0.85em; }
   </style>
 </head>
 <body>
@@ -147,6 +148,13 @@
               <input id="NotificationEmailTo" type="text" is="emby-input" />
               <div class="fieldDescription">Email address that receives request notifications (e.g. the admin/ops mailbox).</div>
             </div>
+
+            <div class="fieldDescription">Send a test notification (save your settings first).</div>
+            <div class="jcTestRow">
+              <button is="emby-button" type="button" id="jcTestDiscord" class="raised emby-button"><span>Test Discord</span></button>
+              <button is="emby-button" type="button" id="jcTestEmail" class="raised emby-button"><span>Test email</span></button>
+              <span id="jcTestResult" class="jcTestResult"></span>
+            </div>
           </div>
 
           <div>
@@ -190,38 +198,64 @@
         container.innerHTML = '';
         var overrides = config.QuotaOverrides || [];
         ApiClient.getUsers().then(function (users) {
+          var table = document.createElement('table');
+          table.className = 'jcTable';
+          var thead = document.createElement('thead');
+          var htr = document.createElement('tr');
+          ['', 'User', 'Quota (GiB)'].forEach(function (h) {
+            var th = document.createElement('th');
+            th.textContent = h;
+            htr.appendChild(th);
+          });
+          thead.appendChild(htr);
+          table.appendChild(thead);
+
+          var tbody = document.createElement('tbody');
           users.forEach(function (user) {
             var existing = overrides.filter(function (o) { return o.UserId === user.Id; })[0];
-            var row = document.createElement('div');
-            row.className = 'jcQuotaRow';
+            var tr = document.createElement('tr');
 
+            var tdAvatar = document.createElement('td');
             var avatar = document.createElement('img');
             avatar.className = 'jcAvatar';
             try { avatar.src = ApiClient.getUserImageUrl(user.Id, { type: 'Primary' }); } catch (e) { /* no image */ }
             avatar.addEventListener('error', function () { avatar.style.visibility = 'hidden'; });
-            row.appendChild(avatar);
+            tdAvatar.appendChild(avatar);
+            tr.appendChild(tdAvatar);
 
-            var name = document.createElement('span');
-            name.className = 'jcQuotaName';
-            name.textContent = user.Name;
-            row.appendChild(name);
+            var tdName = document.createElement('td');
+            tdName.textContent = user.Name;
+            tr.appendChild(tdName);
 
+            var tdQuota = document.createElement('td');
             var input = document.createElement('input');
             input.type = 'number';
             input.min = '0';
             input.step = '1';
-            input.placeholder = 'GiB';
+            input.placeholder = 'default';
             input.setAttribute('is', 'emby-input');
             input.className = 'jc-quota-override';
             input.setAttribute('data-userid', user.Id);
             if (existing) {
               input.value = (existing.QuotaBytes || 0) / JellyCrowdConfig.bytesPerGiB;
             }
-            row.appendChild(input);
+            tdQuota.appendChild(input);
+            tr.appendChild(tdQuota);
 
-            container.appendChild(row);
+            tbody.appendChild(tr);
           });
+
+          table.appendChild(tbody);
+          container.appendChild(table);
         });
+      }
+
+      function jcRunNotifTest(channel) {
+        var result = document.querySelector('#jcTestResult');
+        result.textContent = '…';
+        ApiClient.ajax({ type: 'POST', url: ApiClient.getUrl('JellyCrowd/Notifications/Test/' + channel) })
+          .then(function () { result.textContent = '✅ ' + channel + ' OK'; })
+          .catch(function () { result.textContent = '❌ ' + channel + ' — check settings / server logs'; });
       }
 
       function collectQuotaOverrides() {
@@ -242,6 +276,9 @@
       document.querySelector('#jcTabQuotas').addEventListener('click', function () { jcActivateTab('quotas'); });
       document.querySelector('#jcTabNotifications').addEventListener('click', function () { jcActivateTab('notifications'); });
       document.querySelector('#jcTabRequests').addEventListener('click', function () { jcActivateTab('requests'); });
+
+      document.querySelector('#jcTestDiscord').addEventListener('click', function () { jcRunNotifTest('discord'); });
+      document.querySelector('#jcTestEmail').addEventListener('click', function () { jcRunNotifTest('email'); });
 
       document.querySelector('#JellyCrowdConfigPage')
         .addEventListener('pageshow', function () {
@@ -378,64 +415,79 @@
           }
 
           empty.hidden = true;
-          all.forEach(function (request) {
-            var row = document.createElement('div');
-            row.className = 'jcAdminRow';
 
+          var table = document.createElement('table');
+          table.className = 'jcTable';
+          var thead = document.createElement('thead');
+          var htr = document.createElement('tr');
+          ['', t('col_title'), t('admin_requested_by'), t('col_date'), t('col_status'), ''].forEach(function (h) {
+            var th = document.createElement('th');
+            th.textContent = h;
+            htr.appendChild(th);
+          });
+          thead.appendChild(htr);
+          table.appendChild(thead);
+
+          var tbody = document.createElement('tbody');
+          all.forEach(function (request) {
+            var tr = document.createElement('tr');
+
+            var tdPoster = document.createElement('td');
+            var poster = document.createElement(request.PosterPath ? 'img' : 'div');
+            poster.className = 'jcAdminPoster';
             if (request.PosterPath) {
-              var poster = document.createElement('img');
-              poster.className = 'jcAdminPoster';
               poster.loading = 'lazy';
               poster.src = 'https://image.tmdb.org/t/p/w92' + request.PosterPath;
-              row.appendChild(poster);
-            } else {
-              var ph = document.createElement('div');
-              ph.className = 'jcAdminPoster';
-              row.appendChild(ph);
             }
+            tdPoster.appendChild(poster);
+            tr.appendChild(tdPoster);
 
-            var main = document.createElement('div');
-            main.className = 'jcAdminMain';
-
-            var titleLine = document.createElement('div');
-            titleLine.className = 'jcAdminTitleLine';
+            var tdTitle = document.createElement('td');
             var year = request.ReleaseDate ? (' (' + String(request.ReleaseDate).slice(0, 4) + ')') : '';
-            titleLine.textContent = request.Title + year + (request.Season ? ' · S' + request.Season : '');
-            main.appendChild(titleLine);
+            tdTitle.textContent = request.Title + year + (request.Season ? ' · S' + request.Season : '');
+            tr.appendChild(tdTitle);
 
-            var sub = document.createElement('div');
-            sub.className = 'jcAdminSub';
-            var who = usersById[request.UserId] || '?';
-            var when = request.RequestedAt ? new Date(request.RequestedAt).toLocaleString() : '';
-            sub.textContent = t('admin_requested_by') + ' ' + who + (when ? ' · ' + when : '');
-            main.appendChild(sub);
+            var tdUser = document.createElement('td');
+            tdUser.textContent = usersById[request.UserId] || '?';
+            tr.appendChild(tdUser);
 
-            row.appendChild(main);
+            var tdDate = document.createElement('td');
+            tdDate.className = 'jcAdminSub';
+            tdDate.textContent = request.RequestedAt ? new Date(request.RequestedAt).toLocaleDateString() : '';
+            tr.appendChild(tdDate);
 
+            var tdStatus = document.createElement('td');
             var statusKey = window.JellyCrowdLib ? window.JellyCrowdLib.statusLabelKey(request.Status) : 'status_pending';
             var status = document.createElement('span');
             status.className = 'jcStatus jcStatus-' + statusKey.replace('status_', '');
             status.textContent = t(statusKey);
-            row.appendChild(status);
+            tdStatus.appendChild(status);
+            tr.appendChild(tdStatus);
 
+            var tdActions = document.createElement('td');
+            tdActions.className = 'jcColActions';
             if (isPending(request)) {
               var approve = document.createElement('button');
               approve.type = 'button';
               approve.className = 'raised emby-button';
               approve.textContent = t('admin_approve');
               approve.addEventListener('click', function () { decide(request.Id, 'Approve'); });
-              row.appendChild(approve);
+              tdActions.appendChild(approve);
 
               var deny = document.createElement('button');
               deny.type = 'button';
               deny.className = 'raised emby-button';
               deny.textContent = t('admin_deny');
               deny.addEventListener('click', function () { decide(request.Id, 'Deny'); });
-              row.appendChild(deny);
+              tdActions.appendChild(deny);
             }
+            tr.appendChild(tdActions);
 
-            container.appendChild(row);
+            tbody.appendChild(tr);
           });
+
+          table.appendChild(tbody);
+          container.appendChild(table);
         }
 
         function load() {

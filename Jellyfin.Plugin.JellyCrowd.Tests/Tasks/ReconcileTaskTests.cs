@@ -81,5 +81,7 @@ public sealed class ReconcileTaskTests : IDisposable
   {
     public Task NotifyRequestEventAsync(RequestRecord request, NotificationEvent notificationEvent, CancellationToken cancellationToken)
       => Task.CompletedTask;
+
+    public Task SendTestAsync(string channel, CancellationToken cancellationToken) => Task.CompletedTask;
   }
 }
