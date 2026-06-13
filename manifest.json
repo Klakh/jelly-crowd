@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/Klakh/jelly-crowd/main/Jellyfin.Plugin.JellyCrowd/Web/logo.png",
     "versions": [
       {
+        "version": "0.5.25.0",
+        "changelog": "Release v0.5.25",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Klakh/jelly-crowd/releases/download/v0.5.25/jelly-crowd-v0.5.25.zip",
+        "checksum": "a155cff32701fdf078bb8514519da384",
+        "timestamp": "2026-06-13T02:31:39.0000000Z"
+      },
+      {
         "version": "0.5.24.0",
         "changelog": "Release v0.5.24",
         "targetAbi": "10.11.0.0",
