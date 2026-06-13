@@ -25,6 +25,28 @@ test('pickLang falls back to en for unsupported or empty locales', () => {
   assert.strictEqual(lib.pickLang(null, SUPPORTED), 'en');
 });
 
+test('resolveLang honors a supported admin-forced language', () => {
+  assert.strictEqual(lib.resolveLang('fr', SUPPORTED, 'en-US'), 'fr');
+  assert.strictEqual(lib.resolveLang('EN', SUPPORTED, 'fr-FR'), 'en');
+});
+
+test('resolveLang follows the user locale in auto mode or when forced lang is unsupported', () => {
+  assert.strictEqual(lib.resolveLang('auto', SUPPORTED, 'fr-FR'), 'fr');
+  assert.strictEqual(lib.resolveLang('auto', SUPPORTED, 'de-DE'), 'en');
+  assert.strictEqual(lib.resolveLang('de', SUPPORTED, 'fr-FR'), 'fr');
+  assert.strictEqual(lib.resolveLang(null, SUPPORTED, 'fr-FR'), 'fr');
+});
+
+test('contentLocale maps a forced language to a full TMDB locale', () => {
+  assert.strictEqual(lib.contentLocale('fr', 'en-US'), 'fr-FR');
+  assert.strictEqual(lib.contentLocale('en', 'fr-FR'), 'en-US');
+});
+
+test('contentLocale keeps the user locale in auto mode', () => {
+  assert.strictEqual(lib.contentLocale('auto', 'es-ES'), 'es-ES');
+  assert.strictEqual(lib.contentLocale('auto', ''), 'en-US');
+});
+
 test('yearOf extracts the year or returns empty', () => {
   assert.strictEqual(lib.yearOf({ ReleaseDate: '2021-02-02' }), '2021');
   assert.strictEqual(lib.yearOf({}), '');

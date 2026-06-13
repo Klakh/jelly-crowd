@@ -13,6 +13,7 @@
   var lib = window.JellyCrowdLib;
   var strings = {};
   var quotaExceeded = false;
+  var cfgLang = 'auto';
 
   var MIN_YEAR = 1900;
   var MAX_YEAR = new Date().getFullYear();
@@ -29,11 +30,17 @@
   };
 
   function fullLocale() {
-    return navigator.language || 'en-US';
+    return lib.contentLocale(cfgLang, navigator.language || 'en-US');
   }
 
   function shortLang() {
-    return lib.pickLang(fullLocale(), SUPPORTED_LANGS);
+    return lib.resolveLang(cfgLang, SUPPORTED_LANGS, navigator.language || 'en-US');
+  }
+
+  function loadConfigLang() {
+    return apiGet('JellyCrowd/Settings/Language')
+      .then(function (d) { if (d && d.Language) { cfgLang = String(d.Language).toLowerCase(); } })
+      .catch(function () { /* keep 'auto' on failure */ });
   }
 
   function t(key) {
@@ -750,7 +757,7 @@
   }
 
   function init() {
-    loadStrings().then(function () {
+    loadConfigLang().then(loadStrings).then(function () {
       applyStaticText();
       buildSort();
       setupYearSlider();

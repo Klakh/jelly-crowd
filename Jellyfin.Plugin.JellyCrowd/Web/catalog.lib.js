@@ -18,6 +18,26 @@
     return supported.indexOf(code) >= 0 ? code : 'en';
   }
 
+  // Resolve the effective 2-letter language: an admin-forced language wins when supported,
+  // otherwise 'auto' (or any unsupported value) follows the user's locale.
+  function resolveLang(configLang, supported, userLocale) {
+    var c = String(configLang || 'auto').toLowerCase();
+    if (c !== 'auto' && supported.indexOf(c) >= 0) {
+      return c;
+    }
+    return pickLang(userLocale, supported);
+  }
+
+  // Map a 2-letter language to a full TMDB locale; falls back to the user's locale in 'auto' mode.
+  function contentLocale(configLang, userLocale) {
+    var map = { en: 'en-US', fr: 'fr-FR' };
+    var c = String(configLang || 'auto').toLowerCase();
+    if (map[c]) {
+      return map[c];
+    }
+    return userLocale || 'en-US';
+  }
+
   // Extract the 4-digit year from a TMDB date string, or '' when absent.
   function yearOf(item) {
     return item && item.ReleaseDate ? String(item.ReleaseDate).slice(0, 4) : '';
@@ -99,6 +119,8 @@
 
   return {
     pickLang: pickLang,
+    resolveLang: resolveLang,
+    contentLocale: contentLocale,
     yearOf: yearOf,
     formatTitle: formatTitle,
     formatRating: formatRating,

@@ -42,6 +42,16 @@
 
         <form id="JellyCrowdConfigForm">
           <div id="jcPaneSettings" class="jcTabPane">
+            <div class="selectContainer">
+              <label class="selectLabel" for="Language">Language</label>
+              <select is="emby-select" id="Language" class="emby-select-withcolor emby-select">
+                <option value="auto">Auto (follow each user's language)</option>
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+              </select>
+              <div class="fieldDescription">Language of the Jelly Crowd user pages and notifications. "Auto" follows each user's browser/Jellyfin language.</div>
+            </div>
+
             <div class="inputContainer">
               <label class="inputLabel inputLabelUnfocused" for="TmdbApiKey">TMDB API key</label>
               <input id="TmdbApiKey" name="TmdbApiKey" type="text" is="emby-input" />
@@ -120,7 +130,7 @@
             <div class="inputContainer">
               <label class="inputLabel inputLabelUnfocused" for="SmtpPort">SMTP port</label>
               <input id="SmtpPort" type="number" is="emby-input" min="1" step="1" />
-              <div class="fieldDescription">Use 587 with SSL enabled (STARTTLS). Port 465 (implicit SSL) is not supported.</div>
+              <div class="fieldDescription">Use 587 (STARTTLS) or 465 (implicit SSL) with SSL enabled.</div>
             </div>
 
             <div class="checkboxContainer checkboxContainer-withDescription">
@@ -309,6 +319,7 @@
           Dashboard.showLoadingMsg();
           ApiClient.getPluginConfiguration(JellyCrowdConfig.pluginUniqueId).then(function (config) {
             var gib = JellyCrowdConfig.bytesPerGiB;
+            document.querySelector('#Language').value = config.Language || 'auto';
             document.querySelector('#TmdbApiKey').value = config.TmdbApiKey || '';
             document.querySelector('#DefaultUserQuotaGiB').value = (config.DefaultUserQuotaBytes || 0) / gib;
             document.querySelector('#RequireApproval').checked = !!config.RequireApproval;
@@ -336,6 +347,7 @@
           Dashboard.showLoadingMsg();
           ApiClient.getPluginConfiguration(JellyCrowdConfig.pluginUniqueId).then(function (config) {
             var gib = JellyCrowdConfig.bytesPerGiB;
+            config.Language = document.querySelector('#Language').value;
             config.TmdbApiKey = document.querySelector('#TmdbApiKey').value;
             config.DefaultUserQuotaBytes = Math.round(parseFloat(document.querySelector('#DefaultUserQuotaGiB').value || '0') * gib);
             config.RequireApproval = document.querySelector('#RequireApproval').checked;

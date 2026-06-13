@@ -9,14 +9,26 @@
 
   var SUPPORTED = ['en', 'fr'];
   var strings = {};
+  var cfgLang = 'auto';
 
   function getUrl(p) {
     return (window.ApiClient && window.ApiClient.getUrl) ? window.ApiClient.getUrl(p) : '/' + p;
   }
 
   function lang() {
+    // Admin-forced language wins when supported; otherwise follow the user's browser language.
+    if (cfgLang !== 'auto' && SUPPORTED.indexOf(cfgLang) >= 0) {
+      return cfgLang;
+    }
     var code = (navigator.language || 'en').slice(0, 2).toLowerCase();
     return SUPPORTED.indexOf(code) >= 0 ? code : 'en';
+  }
+
+  function loadConfigLang() {
+    return fetch(getUrl('JellyCrowd/Settings/Language'))
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && d.Language) { cfgLang = String(d.Language).toLowerCase(); } })
+      .catch(function () { /* keep 'auto' on failure */ });
   }
 
   function t(key) {
@@ -108,5 +120,5 @@
     tryInsert();
   }
 
-  loadStrings().then(start);
+  loadConfigLang().then(loadStrings).then(start);
 })();

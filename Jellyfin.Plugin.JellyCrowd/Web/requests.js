@@ -9,9 +9,16 @@
   var POSTER_BASE = 'https://image.tmdb.org/t/p/w154';
   var lib = window.JellyCrowdLib;
   var strings = {};
+  var cfgLang = 'auto';
 
   function shortLang() {
-    return lib.pickLang(navigator.language || 'en-US', SUPPORTED_LANGS);
+    return lib.resolveLang(cfgLang, SUPPORTED_LANGS, navigator.language || 'en-US');
+  }
+
+  function loadConfigLang() {
+    return apiGet('JellyCrowd/Settings/Language')
+      .then(function (d) { if (d && d.Language) { cfgLang = String(d.Language).toLowerCase(); } })
+      .catch(function () { /* keep 'auto' on failure */ });
   }
 
   function t(key) {
@@ -166,7 +173,7 @@
   }
 
   function init() {
-    loadStrings().then(function () {
+    loadConfigLang().then(loadStrings).then(function () {
       document.getElementById('jcReqLogo').src = pluginUrl('JellyCrowd/Web/logo.png');
       document.getElementById('jcReqTitle').textContent = t('my_requests_title');
       setMessage(t('loading'));

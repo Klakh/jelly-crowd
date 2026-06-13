@@ -36,6 +36,7 @@ public class PluginConfiguration : BasePluginConfiguration
     SmtpFromAddress = string.Empty;
     NotificationEmailTo = string.Empty;
     SmtpAllowInvalidCertificate = false;
+    Language = "auto";
   }
 
   /// <summary>
@@ -128,4 +129,10 @@ public class PluginConfiguration : BasePluginConfiguration
   /// Gets or sets a value indicating whether to accept self-signed/invalid SMTP TLS certificates (insecure).
   /// </summary>
   public bool SmtpAllowInvalidCertificate { get; set; }
+
+  /// <summary>
+  /// Gets or sets the UI/notification language. <c>"auto"</c> (default) follows each user's
+  /// browser/Jellyfin language; a 2-letter code (e.g. <c>"en"</c>, <c>"fr"</c>) forces that language.
+  /// </summary>
+  public string Language { get; set; }
 }
